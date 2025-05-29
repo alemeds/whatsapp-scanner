@@ -1,0 +1,112 @@
+# Diccionario para detectar AMENAZAS Y VIOLENCIA
+# Formato: termino,categoria
+# Categorías: palabras_alta, palabras_media, frases_contexto, contexto_agresion
+
+# Términos de alto riesgo - Amenazas directas y violencia
+matar,palabras_alta
+asesinar,palabras_alta
+eliminar,palabras_alta
+acabar contigo,palabras_alta
+te voy a matar,palabras_alta
+vas a morir,palabras_alta
+muerte,palabras_alta
+muerto,palabras_alta
+cadáver,palabras_alta
+sangre,palabras_alta
+violencia,palabras_alta
+golpear,palabras_alta
+pegar,palabras_alta
+golpes,palabras_alta
+paliza,palabras_alta
+torturar,palabras_alta
+tortura,palabras_alta
+destruir,palabras_alta
+quemar,palabras_alta
+incendiar,palabras_alta
+bomba,palabras_alta
+explotar,palabras_alta
+arma,palabras_alta
+pistola,palabras_alta
+cuchillo,palabras_alta
+navaja,palabras_alta
+veneno,palabras_alta
+envenenar,palabras_alta
+
+# Términos de riesgo medio - Intimidación y coerción
+amenaza,palabras_media
+amenazar,palabras_media
+intimidar,palabras_media
+intimidación,palabras_media
+asustar,palabras_media
+miedo,palabras_media
+terror,palabras_media
+pánico,palabras_media
+lastimar,palabras_media
+dañar,palabras_media
+herir,palabras_media
+dolor,palabras_media
+sufrir,palabras_media
+sufrimiento,palabras_media
+castigo,palabras_media
+castigar,palabras_media
+venganza,palabras_media
+vengar,palabras_media
+pagar caro,palabras_media
+te arrepentirás,palabras_media
+lo lamentarás,palabras_media
+consecuencias,palabras_media
+precio,palabras_media
+ajuste de cuentas,palabras_media
+
+# Frases de contexto amenazante
+vas a pagar,frases_contexto
+me las vas a pagar,frases_contexto
+no sabes con quién te metes,frases_contexto
+te conozco,frases_contexto
+sé dónde vives,frases_contexto
+sé dónde trabajas,frases_contexto
+sé dónde estudias,frases_contexto
+conozco a tu familia,frases_contexto
+tus hijos,frases_contexto
+tu familia va a sufrir,frases_contexto
+nadie te va a proteger,frases_contexto
+no tienes escapatoria,frases_contexto
+no hay lugar donde esconderte,frases_contexto
+te vamos a encontrar,frases_contexto
+no importa dónde vayas,frases_contexto
+cuenta los días,frases_contexto
+tus días están contados,frases_contexto
+vas a desaparecer,frases_contexto
+nadie te va a extrañar,frases_contexto
+como si nunca hubieras existido,frases_contexto
+accident will happen,frases_contexto
+puede pasar cualquier cosa,frases_contexto
+cuidado al caminar,frases_contexto
+ten cuidado,frases_contexto
+algo malo puede pasar,frases_contexto
+
+# Contexto de agresión
+violento,contexto_agresion
+agresivo,contexto_agresion
+agresión,contexto_agresion
+ataque,contexto_agresion
+atacar,contexto_agresion
+agredir,contexto_agresion
+hostil,contexto_agresion
+hostilidad,contexto_agresion
+enemigo,contexto_agresion
+odio,contexto_agresion
+odiar,contexto_agresion
+rencor,contexto_agresion
+ira,contexto_agresion
+furia,contexto_agresion
+rabia,contexto_agresion
+cólera,contexto_agresion
+enfurecer,contexto_agresion
+enojado,contexto_agresion
+furioso,contexto_agresion
+iracundo,contexto_agresion
+peligro,contexto_agresion
+peligroso,contexto_agresion
+riesgo,contexto_agresion
+amenazante,contexto_agresion

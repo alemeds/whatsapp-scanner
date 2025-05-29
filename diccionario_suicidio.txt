@@ -1,0 +1,115 @@
+# Diccionario para detectar IDEACIÓN SUICIDA Y AUTOLESIÓN
+# Formato: termino,categoria
+# Categorías: palabras_alta, palabras_media, frases_contexto, contexto_emocional
+
+# Términos de alto riesgo - Ideación suicida directa
+suicidio,palabras_alta
+suicidarme,palabras_alta
+matarme,palabras_alta
+quitarme la vida,palabras_alta
+acabar con todo,palabras_alta
+no quiero vivir,palabras_alta
+no vale la pena vivir,palabras_alta
+mejor muerto,palabras_alta
+mejor muerta,palabras_alta
+desaparecer para siempre,palabras_alta
+irme de este mundo,palabras_alta
+terminar con mi vida,palabras_alta
+no aguanto más,palabras_alta
+ya no puedo más,palabras_alta
+estoy acabado,palabras_alta
+estoy acabada,palabras_alta
+no hay salida,palabras_alta
+sin escape,palabras_alta
+callejón sin salida,palabras_alta
+túnel sin luz,palabras_alta
+abismo,palabras_alta
+precipicio,palabras_alta
+pastillas,palabras_alta
+sobredosis,palabras_alta
+ahorcarse,palabras_alta
+cortarse las venas,palabras_alta
+
+# Términos de riesgo medio - Señales de alerta
+desesperación,palabras_media
+desesperado,palabras_media
+desesperada,palabras_media
+agotado,palabras_media
+agotada,palabras_media
+cansado de todo,palabras_media
+cansada de todo,palabras_media
+sin fuerzas,palabras_media
+sin energía,palabras_media
+vacío,palabras_media
+vacía,palabras_media
+hueco,palabras_media
+nada tiene sentido,palabras_media
+todo es inútil,palabras_media
+para qué seguir,palabras_media
+qué caso tiene,palabras_media
+no sirvo para nada,palabras_media
+soy un fracaso,palabras_media
+soy una carga,palabras_media
+todos estarían mejor sin mí,palabras_media
+nadie me va a extrañar,palabras_media
+soy un estorbo,palabras_media
+no tengo propósito,palabras_media
+mi vida no vale nada,palabras_media
+
+# Frases de contexto preocupantes
+despedirse,frases_contexto
+despedida,frases_contexto
+último adiós,frases_contexto
+no nos vamos a ver más,frases_contexto
+cuídense,frases_contexto
+sean felices,frases_contexto
+perdón por todo,frases_contexto
+los quiero mucho,frases_contexto
+gracias por todo,frases_contexto
+ha sido un placer conocerlos,frases_contexto
+espero que me recuerden,frases_contexto
+no me olviden,frases_contexto
+cuando ya no esté,frases_contexto
+después de que me vaya,frases_contexto
+pronto estaré en paz,frases_contexto
+pronto descansaré,frases_contexto
+se terminó todo,frases_contexto
+llegó mi hora,frases_contexto
+es mi momento,frases_contexto
+no hay vuelta atrás,frases_contexto
+ya tomé la decisión,frases_contexto
+ya está decidido,frases_contexto
+no me van a detener,frases_contexto
+nadie puede ayudarme,frases_contexto
+es demasiado tarde,frases_contexto
+
+# Contexto emocional
+depresión,contexto_emocional
+deprimido,contexto_emocional
+deprimida,contexto_emocional
+tristeza,contexto_emocional
+triste,contexto_emocional
+melancolía,contexto_emocional
+melancólico,contexto_emocional
+melancólica,contexto_emocional
+dolor emocional,contexto_emocional
+sufrimiento,contexto_emocional
+sufrir,contexto_emocional
+angustia,contexto_emocional
+angustiado,contexto_emocional
+angustiada,contexto_emocional
+ansiedad,contexto_emocional
+ansioso,contexto_emocional
+ansiosa,contexto_emocional
+estrés,contexto_emocional
+estresado,contexto_emocional
+estresada,contexto_emocional
+soledad,contexto_emocional
+solo,contexto_emocional
+sola,contexto_emocional
+abandono,contexto_emocional
+abandonado,contexto_emocional
+abandonada,contexto_emocional
+rechazo,contexto_emocional
+rechazado,contexto_emocional
+rechazada,contexto_emocional

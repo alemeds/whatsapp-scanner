@@ -1,0 +1,121 @@
+# Diccionario para detectar CYBERBULLYING Y ACOSO DIGITAL
+# Formato: termino,categoria
+# Categorías: palabras_alta, palabras_media, frases_contexto, contexto_digital
+
+# Términos de alto riesgo - Cyberbullying directo
+idiota,palabras_alta
+estúpido,palabras_alta
+estúpida,palabras_alta
+imbécil,palabras_alta
+retrasado,palabras_alta
+retrasada,palabras_alta
+inútil,palabras_alta
+basura,palabras_alta
+escoria,palabras_alta
+lacra,palabras_alta
+patético,palabras_alta
+patética,palabras_alta
+perdedor,palabras_alta
+perdedora,palabras_alta
+fracasado,palabras_alta
+fracasada,palabras_alta
+nadie te quiere,palabras_alta
+todos te odian,palabras_alta
+eres repugnante,palabras_alta
+das asco,palabras_alta
+vete a morir,palabras_alta
+ojalá te mueras,palabras_alta
+no sirves para nada,palabras_alta
+eres un cero,palabras_alta
+eres una rata,palabras_alta
+cucaracha,palabras_alta
+gusano,palabras_alta
+
+# Términos de riesgo medio - Burlas y humillación
+burla,palabras_media
+burlarse,palabras_media
+reírse de ti,palabras_media
+humillar,palabras_media
+humillación,palabras_media
+ridículo,palabras_media
+ridícula,palabras_media
+vergüenza,palabras_media
+vergonzoso,palabras_media
+vergonzosa,palabras_media
+raro,palabras_media
+rara,palabras_media
+rarito,palabras_media
+rarita,palabras_media
+fenómeno,palabras_media
+bicho raro,palabras_media
+inadaptado,palabras_media
+inadaptada,palabras_media
+antisocial,palabras_media
+extraño,palabras_media
+extraña,palabras_media
+diferente,palabras_media
+anormal,palabras_media
+loco,palabras_media
+loca,palabras_media
+chiflado,palabras_media
+chiflada,palabras_media
+
+# Frases de contexto típicas del cyberbullying
+todos se ríen de ti,frases_contexto
+eres el hazmerreír,frases_contexto
+nadie quiere ser tu amigo,frases_contexto
+siempre estás solo,frases_contexto
+siempre estás sola,frases_contexto
+no tienes amigos,frases_contexto
+eres invisible,frases_contexto
+nadie te nota,frases_contexto
+pasas desapercibido,frases_contexto
+pasas desapercibida,frases_contexto
+qué haces aquí,frases_contexto
+no perteneces aquí,frases_contexto
+vete de aquí,frases_contexto
+no te queremos,frases_contexto
+sobras,frases_contexto
+estás de más,frases_contexto
+mejor desaparece,frases_contexto
+haznos un favor y vete,frases_contexto
+el mundo sería mejor sin ti,frases_contexto
+eres un error,frases_contexto
+tu vida es un chiste,frases_contexto
+publicar fotos,frases_contexto
+subir video,frases_contexto
+compartir pantallazos,frases_contexto
+hacer viral,frases_contexto
+etiquetar a todos,frases_contexto
+
+# Contexto digital
+redes sociales,contexto_digital
+facebook,contexto_digital
+instagram,contexto_digital
+twitter,contexto_digital
+tiktok,contexto_digital
+whatsapp,contexto_digital
+telegram,contexto_digital
+snapchat,contexto_digital
+youtube,contexto_digital
+publicar,contexto_digital
+postear,contexto_digital
+compartir,contexto_digital
+etiquetar,contexto_digital
+comentar,contexto_digital
+like,contexto_digital
+dislike,contexto_digital
+seguir,contexto_digital
+bloquear,contexto_digital
+reportar,contexto_digital
+denunciar,contexto_digital
+captura de pantalla,contexto_digital
+screenshot,contexto_digital
+foto,contexto_digital
+video,contexto_digital
+meme,contexto_digital
+viral,contexto_digital
+trending,contexto_digital
+hashtag,contexto_digital
+perfil,contexto_digital
+cuenta,contexto_digital

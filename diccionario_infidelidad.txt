@@ -1,0 +1,92 @@
+# Diccionario para detectar INFIDELIDAD
+# Formato: termino,categoria
+# Categorías: palabras_alta, palabras_media, frases_contexto, contexto_relacion
+
+# Términos de alto riesgo - Evidencia clara de infidelidad
+aventura,palabras_alta
+amante,palabras_alta
+engaño,palabras_alta
+engañar,palabras_alta
+traición,palabras_alta
+traicionar,palabras_alta
+cuernos,palabras_alta
+infiel,palabras_alta
+infidelidad,palabras_alta
+otro hombre,palabras_alta
+otra mujer,palabras_alta
+me acosté con,palabras_alta
+me tiré a,palabras_alta
+estoy con otro,palabras_alta
+estoy con otra,palabras_alta
+tengo a alguien más,palabras_alta
+doble vida,palabras_alta
+segunda relación,palabras_alta
+mi novio no sabe,palabras_alta
+mi novia no sabe,palabras_alta
+mi esposo no sabe,palabras_alta
+mi esposa no sabe,palabras_alta
+
+# Términos de riesgo medio - Comportamientos sospechosos
+secreto,palabras_media
+ocultar,palabras_media
+esconder,palabras_media
+mentir,palabras_media
+mentira,palabras_media
+coartada,palabras_media
+excusa,palabras_media
+trabajo tarde,palabras_media
+reunión de trabajo,palabras_media
+viaje de negocios,palabras_media
+salida con amigos,palabras_media
+no puedo hablar,palabras_media
+estoy ocupado,palabras_media
+estoy ocupada,palabras_media
+después hablamos,palabras_media
+no es buen momento,palabras_media
+estoy en reunión,palabras_media
+mi pareja está aquí,palabras_media
+
+# Frases de contexto sospechoso
+no le digas a nadie,frases_contexto
+entre nosotros,frases_contexto
+nuestro secreto,frases_contexto
+que no se entere,frases_contexto
+mantén esto en secreto,frases_contexto
+solo tú y yo sabemos,frases_contexto
+borra este mensaje,frases_contexto
+elimina la conversación,frases_contexto
+no dejes rastro,frases_contexto
+cuando él no esté,frases_contexto
+cuando ella no esté,frases_contexto
+cuando esté solo,frases_contexto
+cuando esté sola,frases_contexto
+aprovechemos que,frases_contexto
+mientras no regrese,frases_contexto
+tenemos poco tiempo,frases_contexto
+rápido antes que llegue,frases_contexto
+fingir que trabajamos,frases_contexto
+inventar una excusa,frases_contexto
+decir que estaba contigo,frases_contexto
+
+# Contexto de relación
+mi esposo,contexto_relacion
+mi esposa,contexto_relacion
+mi novio,contexto_relacion
+mi novia,contexto_relacion
+mi pareja,contexto_relacion
+mi marido,contexto_relacion
+mi mujer,contexto_relacion
+en casa,contexto_relacion
+familia,contexto_relacion
+hijos,contexto_relacion
+divorcio,contexto_relacion
+separación,contexto_relacion
+matrimonio,contexto_relacion
+relación,contexto_relacion
+compromiso,contexto_relacion
+fidelidad,contexto_relacion
+confianza,contexto_relacion
+sospecha,contexto_relacion
+sospechar,contexto_relacion
+duda,contexto_relacion
+dudar,contexto_relacion

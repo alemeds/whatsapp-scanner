@@ -1,0 +1,105 @@
+# Diccionario para detectar ROBO Y ESTAFAS
+# Formato: termino,categoria
+# Categorías: palabras_alta, palabras_media, frases_contexto, contexto_financiero
+
+# Términos de alto riesgo - Evidencia clara de actividad ilegal
+robar,palabras_alta
+robo,palabras_alta
+estafa,palabras_alta
+estafar,palabras_alta
+fraude,palabras_alta
+defraudar,palabras_alta
+timo,palabras_alta
+timar,palabras_alta
+hurto,palabras_alta
+hurtar,palabras_alta
+apropiarse,palabras_alta
+malversar,palabras_alta
+falsificar,palabras_alta
+falsificación,palabras_alta
+clonación,palabras_alta
+clonar tarjeta,palabras_alta
+hackear,palabras_alta
+phishing,palabras_alta
+estafa piramidal,palabras_alta
+esquema ponzi,palabras_alta
+lavado de dinero,palabras_alta
+blanqueo,palabras_alta
+dinero sucio,palabras_alta
+dinero negro,palabras_alta
+evadir impuestos,palabras_alta
+evasión fiscal,palabras_alta
+
+# Términos de riesgo medio - Comportamientos sospechosos
+fácil dinero,palabras_media
+dinero rápido,palabras_media
+sin esfuerzo,palabras_media
+sin trabajar,palabras_media
+negocio seguro,palabras_media
+inversión garantizada,palabras_media
+oportunidad única,palabras_media
+por tiempo limitado,palabras_media
+no pierdas esta oportunidad,palabras_media
+solo para ti,palabras_media
+precio especial,palabras_media
+descuento exclusivo,palabras_media
+transferir dinero,palabras_media
+enviar dinero,palabras_media
+adelantar pago,palabras_media
+pago por adelantado,palabras_media
+depósito inicial,palabras_media
+comisión,palabras_media
+porcentaje,palabras_media
+ganancia,palabras_media
+
+# Frases de contexto típicas de estafas
+necesito que me ayudes,frases_contexto
+es urgente,frases_contexto
+tengo problemas,frases_contexto
+estoy en apuros,frases_contexto
+solo esta vez,frases_contexto
+te lo devuelvo mañana,frases_contexto
+confía en mí,frases_contexto
+no le digas a nadie,frases_contexto
+es confidencial,frases_contexto
+oportunidad de negocio,frases_contexto
+puedes ganar mucho,frases_contexto
+duplicar tu dinero,frases_contexto
+triplicar inversión,frases_contexto
+sin riesgo,frases_contexto
+100% seguro,frases_contexto
+garantizado,frases_contexto
+no puedes perder,frases_contexto
+últimas plazas,frases_contexto
+oferta limitada,frases_contexto
+actúa rápido,frases_contexto
+decide ahora,frases_contexto
+no hay tiempo que perder,frases_contexto
+otros ya se apuntaron,frases_contexto
+mucha demanda,frases_contexto
+
+# Contexto financiero
+dinero,contexto_financiero
+plata,contexto_financiero
+efectivo,contexto_financiero
+transferencia,contexto_financiero
+depósito,contexto_financiero
+cuenta bancaria,contexto_financiero
+tarjeta de crédito,contexto_financiero
+tarjeta de débito,contexto_financiero
+préstamo,contexto_financiero
+crédito,contexto_financiero
+inversión,contexto_financiero
+negocio,contexto_financiero
+empresa,contexto_financiero
+socio,contexto_financiero
+sociedad,contexto_financiero
+beneficio,contexto_financiero
+rentabilidad,contexto_financiero
+interés,contexto_financiero
+dividendo,contexto_financiero
+patrimonio,contexto_financiero
+capital,contexto_financiero
+banco,contexto_financiero
+financiera,contexto_financiero
+cooperativa,contexto_financiero

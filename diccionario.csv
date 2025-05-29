@@ -1,0 +1,263 @@
+termino,categoria
+# PALABRAS DE ALTA GRAVEDAD
+desnuda,palabras_alta
+desnudo,palabras_alta
+fotos íntimas,palabras_alta
+foto íntima,palabras_alta
+imagen privada,palabras_alta
+selfie privada,palabras_alta
+sexo,palabras_alta
+sexual,palabras_alta
+tocarte,palabras_alta
+te quiero tocar,palabras_alta
+quiero verte,palabras_alta
+quiero que nos veamos,palabras_alta
+video llamada privada,palabras_alta
+excitado,palabras_alta
+excitada,palabras_alta
+cuerpo,palabras_alta
+te deseo,palabras_alta
+follemos,palabras_alta
+coger,palabras_alta
+cojamos,palabras_alta
+hot,palabras_alta
+caliente,palabras_alta
+rico,palabras_alta
+rica,palabras_alta
+linda,palabras_alta
+hermosa,palabras_alta
+preciosa,palabras_alta
+bella,palabras_alta
+sexy,palabras_alta
+sensual,palabras_alta
+provocativa,palabras_alta
+provocador,palabras_alta
+cama,palabras_alta
+dormir juntos,palabras_alta
+ganas de ti,palabras_alta
+hacerte cosas,palabras_alta
+caricias,palabras_alta
+ropa interior,palabras_alta
+te imagino,palabras_alta
+tomar algo,palabras_alta
+cenar juntos,palabras_alta
+encontrarnos,palabras_alta
+vernos,palabras_alta
+quedar,palabras_alta
+tócate,palabras_alta
+háblame sucio,palabras_alta
+háblame mal,palabras_alta
+masturbación,palabras_alta
+masturbarte,palabras_alta
+tocarte,palabras_alta
+relaciones,palabras_alta
+posiciones,palabras_alta
+te deseo,palabras_alta
+tengo fantasías,palabras_alta
+tengo ganas,palabras_alta
+envíame fotos,palabras_alta
+mándame fotos,palabras_alta
+foto tuya,palabras_alta
+qué llevas puesto,palabras_alta
+
+# PALABRAS DE GRAVEDAD MEDIA
+atractiva,palabras_media
+atractivo,palabras_media
+guapa,palabras_media
+guapo,palabras_media
+bonita,palabras_media
+bonito,palabras_media
+nena,palabras_media
+nene,palabras_media
+bebé,palabras_media
+bebe,palabras_media
+cariño,palabras_media
+amor,palabras_media
+corazón,palabras_media
+tierna,palabras_media
+salir juntos,palabras_media
+me gustas,palabras_media
+especial para mí,palabras_media
+eres diferente,palabras_media
+confía en mí,palabras_media
+entre tú y yo,palabras_media
+favorita,palabras_media
+favorito,palabras_media
+estás muy bien,palabras_media
+eres muy madura,palabras_media
+vestido,palabras_media
+falda,palabras_media
+piernas,palabras_media
+labios,palabras_media
+boca,palabras_media
+ojos bonitos,palabras_media
+piel,palabras_media
+nervioso,palabras_media
+nerviosa,palabras_media
+tímida,palabras_media
+tímido,palabras_media
+lindo,palabras_media
+cuerpazo,palabras_media
+figura,palabras_media
+mirada,palabras_media
+sonrisa,palabras_media
+encanto,palabras_media
+simpática,palabras_media
+simpático,palabras_media
+encantadora,palabras_media
+encantador,palabras_media
+juntarnos,palabras_media
+abrazos,palabras_media
+beso,palabras_media
+acompañarte,palabras_media
+ayudarte,palabras_media
+protegerte,palabras_media
+cuidarte,palabras_media
+enseñarte,palabras_media
+aconsejarte,palabras_media
+orientarte,palabras_media
+guiarte,palabras_media
+apoyarte,palabras_media
+eres única,palabras_media
+eres único,palabras_media
+mi tipo,palabras_media
+mi estilo,palabras_media
+
+# FRASES DE CONTEXTO
+solos,frases_contexto
+solas,frases_contexto
+hotel,frases_contexto
+privado,frases_contexto
+privada,frases_contexto
+secreto,frases_contexto
+secreta,frases_contexto
+nadie,frases_contexto
+no le digas,frases_contexto
+no se lo digas,frases_contexto
+no lo cuentes,frases_contexto
+entre nosotros,frases_contexto
+nuestro secreto,frases_contexto
+quedamos solos,frases_contexto
+cuando nadie nos vea,frases_contexto
+cuando estemos solos,frases_contexto
+me gustas,frases_contexto
+me encantas,frases_contexto
+te extraño,frases_contexto
+te echo de menos,frases_contexto
+que no se entere,frases_contexto
+confidencial,frases_contexto
+borremos los mensajes,frases_contexto
+elimina esta conversación,frases_contexto
+solo tú y yo,frases_contexto
+a solas,frases_contexto
+nos vemos luego,frases_contexto
+fuera de horario,frases_contexto
+sin que se enteren,frases_contexto
+en privado,frases_contexto
+discreto,frases_contexto
+discreta,frases_contexto
+entre tú y yo,frases_contexto
+de tú a tú,frases_contexto
+sin intermediarios,frases_contexto
+a escondidas,frases_contexto
+reservado,frases_contexto
+reservada,frases_contexto
+nadie tiene que saberlo,frases_contexto
+sin testigos,frases_contexto
+mejor hablar en persona,frases_contexto
+mejor vernos en persona,frases_contexto
+llamar por teléfono,frases_contexto
+no por escrito,frases_contexto
+sin dejar rastro,frases_contexto
+hablamos en persona,frases_contexto
+mensaje directo,frases_contexto
+después del trabajo,frases_contexto
+fuera del trabajo,frases_contexto
+fin de semana,frases_contexto
+este es mi número personal,frases_contexto
+mi teléfono personal,frases_contexto
+mi contacto personal,frases_contexto
+comunicación privada,frases_contexto
+solo conmigo,frases_contexto
+confianza,frases_contexto
+confiar en mí,frases_contexto
+queda entre nosotros,frases_contexto
+borrar rastros,frases_contexto
+no dejar evidencia,frases_contexto
+evitar comentarios,frases_contexto
+discreción absoluta,frases_contexto
+evitar rumores,frases_contexto
+mal interpretado,frases_contexto
+mal interpretada,frases_contexto
+sin malentendidos,frases_contexto
+
+# CONTEXTO LABORAL
+jefe,contexto_laboral
+jefa,contexto_laboral
+supervisor,contexto_laboral
+supervisora,contexto_laboral
+gerente,contexto_laboral
+director,contexto_laboral
+directora,contexto_laboral
+ascenso,contexto_laboral
+promoción,contexto_laboral
+evaluación,contexto_laboral
+contrato,contexto_laboral
+despido,contexto_laboral
+reconocimiento,contexto_laboral
+bono,contexto_laboral
+premio,contexto_laboral
+incentivo,contexto_laboral
+salario,contexto_laboral
+sueldo,contexto_laboral
+vacaciones,contexto_laboral
+puesto,contexto_laboral
+cargo,contexto_laboral
+rango,contexto_laboral
+subordinado,contexto_laboral
+subordinada,contexto_laboral
+superior,contexto_laboral
+compañeros,contexto_laboral
+compañera,contexto_laboral
+equipo,contexto_laboral
+colega,contexto_laboral
+oficina,contexto_laboral
+despacho,contexto_laboral
+empresa,contexto_laboral
+empleado,contexto_laboral
+empleada,contexto_laboral
+recursos humanos,contexto_laboral
+rrhh,contexto_laboral
+personal,contexto_laboral
+desempeño,contexto_laboral
+rendimiento,contexto_laboral
+evaluación,contexto_laboral
+calificación,contexto_laboral
+horas extras,contexto_laboral
+extra,contexto_laboral
+reunión a solas,contexto_laboral
+reunión privada,contexto_laboral
+evaluación personal,contexto_laboral
+entrevista,contexto_laboral
+carrera,contexto_laboral
+trayectoria,contexto_laboral
+crecimiento profesional,contexto_laboral
+desarrollo profesional,contexto_laboral
+oportunidad,contexto_laboral
+experiencia,contexto_laboral
+referencias,contexto_laboral
+recomendación,contexto_laboral
+decisión,contexto_laboral
+influencia,contexto_laboral
+poder de decisión,contexto_laboral
+confidencial,contexto_laboral
+quejas,contexto_laboral
+problemas,contexto_laboral
+incidencias,contexto_laboral
+situación,contexto_laboral
+ambiente,contexto_laboral
+clima laboral,contexto_laboral
+relación profesional,contexto_laboral
+subordinación,contexto_laboral
+jerarquía,contexto_laboral
+organigrama,contexto_laboral

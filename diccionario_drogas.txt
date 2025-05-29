@@ -1,0 +1,120 @@
+# Diccionario para detectar TRÁFICO Y CONSUMO DE DROGAS
+# Formato: termino,categoria
+# Categorías: palabras_alta, palabras_media, frases_contexto, contexto_sustancias
+
+# Términos de alto riesgo - Drogas y tráfico directo
+cocaína,palabras_alta
+coca,palabras_alta
+perico,palabras_alta
+polvo,palabras_alta
+nieve,palabras_alta
+blanca,palabras_alta
+heroína,palabras_alta
+caballo,palabras_alta
+jaco,palabras_alta
+marihuana,palabras_alta
+hierba,palabras_alta
+maría,palabras_alta
+mota,palabras_alta
+porro,palabras_alta
+canuto,palabras_alta
+churro,palabras_alta
+éxtasis,palabras_alta
+pastillas,palabras_alta
+mdma,palabras_alta
+cristal,palabras_alta
+metanfetamina,palabras_alta
+speed,palabras_alta
+anfetas,palabras_alta
+lsd,palabras_alta
+ácido,palabras_alta
+tripi,palabras_alta
+keta,palabras_alta
+ketamina,palabras_alta
+fentanilo,palabras_alta
+
+# Términos de riesgo medio - Jerga y códigos
+mercancía,palabras_media
+producto,palabras_media
+material,palabras_media
+cosa,palabras_media
+eso,palabras_media
+aquello,palabras_media
+paquete,palabras_media
+bolsa,palabras_media
+sobre,palabras_media
+gramo,palabras_media
+medio,palabras_media
+cuarto,palabras_media
+onza,palabras_media
+kilo,palabras_media
+dosis,palabras_media
+toque,palabras_media
+jalón,palabras_media
+pase,palabras_media
+raya,palabras_media
+línea,palabras_media
+chute,palabras_media
+pico,palabras_media
+viaje,palabras_media
+vuelo,palabras_media
+colocón,palabras_media
+
+# Frases de contexto del tráfico
+tienes algo,frases_contexto
+necesito algo,frases_contexto
+consígueme algo,frases_contexto
+hay disponible,frases_contexto
+está fresco,frases_contexto
+buena calidad,frases_contexto
+recién llegado,frases_contexto
+directo del productor,frases_contexto
+sin cortar,frases_contexto
+puro,frases_contexto
+de primera,frases_contexto
+precio especial,frases_contexto
+oferta,frases_contexto
+descuento,frases_contexto
+por cantidad,frases_contexto
+al por mayor,frases_contexto
+entrega a domicilio,frases_contexto
+delivery,frases_contexto
+punto de encuentro,frases_contexto
+lugar de siempre,frases_contexto
+mismo sitio,frases_contexto
+esquina habitual,frases_contexto
+parque,frases_contexto
+discoteca,frases_contexto
+fiesta,frases_contexto
+rave,frases_contexto
+after,frases_contexto
+
+# Contexto de sustancias
+drogarse,contexto_sustancias
+colocarse,contexto_sustancias
+ponerse,contexto_sustancias
+consumir,contexto_sustancias
+usar,contexto_sustancias
+tomar,contexto_sustancias
+probar,contexto_sustancias
+experimentar,contexto_sustancias
+adicción,contexto_sustancias
+adicto,contexto_sustancias
+adicta,contexto_sustancias
+dependencia,contexto_sustancias
+mono,contexto_sustancias
+síndrome de abstinencia,contexto_sustancias
+dealer,contexto_sustancias
+camello,contexto_sustancias
+proveedor,contexto_sustancias
+contacto,contexto_sustancias
+traficante,contexto_sustancias
+narcotráfico,contexto_sustancias
+vender,contexto_sustancias
+comprar,contexto_sustancias
+traficar,contexto_sustancias
+distribuir,contexto_sustancias
+transportar,contexto_sustancias
+pasar,contexto_sustancias
+mula,contexto_sustancias
+correo,contexto_sustancias
