@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-ANALIZADOR AVANZADO DE CONVERSACIONES DE WHATSAPP CON NLP
+ANALIZADOR AVANZADO DE CONVERSACIONES DE WHATSAPP
 Aplicación web para detectar diferentes tipos de delitos y comportamientos en chats
-Con análisis inteligente usando spaCy y detección contextual
+Versión optimizada para Streamlit Cloud sin dependencias problemáticas
 
 Autor: Sistema de Análisis de Comunicaciones
-Versión: 4.0 - NLP Edition (Streamlit Cloud Optimized)
+Versión: 4.5 - Streamlit Cloud Stable Edition
 """
 
 import streamlit as st
@@ -16,60 +16,52 @@ import re
 import csv
 import io
 import os
-import tempfile
-import subprocess
-import sys
 from datetime import datetime, timedelta
-from pathlib import Path
 import plotly.express as px
 import plotly.graph_objects as go
 from collections import Counter, defaultdict
 import hashlib
 
-# Función para instalar dependencias automáticamente
+# Verificación segura de dependencias NLP
 @st.cache_resource
-def install_and_setup_nlp():
-    """Instala y configura NLP automáticamente"""
+def check_nlp_dependencies():
+    """Verifica qué dependencias NLP están disponibles de forma segura"""
+    spacy_available = False
+    textblob_available = False
+    nlp_model = None
+    
+    # Verificar TextBlob (más ligero y confiable)
     try:
-        # Intentar importar spacy
+        from textblob import TextBlob
+        # Crear un test simple
+        test_blob = TextBlob("test text")
+        _ = test_blob.sentiment.polarity
+        textblob_available = True
+    except Exception:
+        textblob_available = False
+    
+    # Verificar spaCy solo si está disponible (sin forzar instalación)
+    try:
         import spacy
-        from textblob import TextBlob
-        
-        # Intentar cargar el modelo español
         try:
-            nlp = spacy.load("es_core_news_sm")
-            return True, nlp, True
+            nlp_model = spacy.load("es_core_news_sm")
+            spacy_available = True
         except OSError:
-            # Si no está el modelo, intentar descargarlo
-            try:
-                st.info("🔄 Descargando modelo de español... (solo la primera vez)")
-                subprocess.check_call([
-                    sys.executable, "-m", "spacy", "download", "es_core_news_sm"
-                ], capture_output=True)
-                nlp = spacy.load("es_core_news_sm")
-                st.success("✅ Modelo descargado correctamente")
-                return True, nlp, True
-            except:
-                st.warning("⚠️ No se pudo descargar el modelo. Usando análisis básico.")
-                return False, None, True
+            # Modelo no disponible, usar análisis básico
+            spacy_available = False
     except ImportError:
-        st.error("❌ spaCy no está instalado. Usando análisis básico.")
-        return False, None, False
+        # spaCy no instalado, continuar sin él
+        spacy_available = False
+    
+    return spacy_available, textblob_available, nlp_model
 
-# Inicializar NLP
-NLP_AVAILABLE, nlp, TEXTBLOB_AVAILABLE = install_and_setup_nlp()
-
-# Importar TextBlob si está disponible
-if TEXTBLOB_AVAILABLE:
-    try:
-        from textblob import TextBlob
-    except ImportError:
-        TEXTBLOB_AVAILABLE = False
+# Inicializar verificación de dependencias
+SPACY_AVAILABLE, TEXTBLOB_AVAILABLE, nlp = check_nlp_dependencies()
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Analizador WhatsApp - Detector NLP",
-    page_icon="🧠",
+    page_title="Analizador WhatsApp - Detector de Patrones",
+    page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -93,14 +85,6 @@ st.markdown("""
         border-left: 4px solid #667eea;
         margin: 0.5rem 0;
         box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.2);
-    }
-    .warning-box {
-        background: linear-gradient(145deg, #fff3cd, #ffeaa7);
-        border: 1px solid #ffeaa7;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 4px 15px 0 rgba(255, 193, 7, 0.3);
     }
     .evidence-card {
         background: #fff;
@@ -127,13 +111,6 @@ st.markdown("""
         border-left: 6px solid #28a745; 
         background: linear-gradient(145deg, #f8fff8, #e6ffe6);
     }
-    .instruction-box {
-        background: linear-gradient(145deg, #e3f2fd, #bbdefb);
-        border: 1px solid #2196f3;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-    }
     .chat-message {
         background: #f1f3f4;
         border-radius: 10px;
@@ -155,66 +132,87 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-class AdvancedNLPAnalyzer:
-    """Analizador NLP avanzado para detección de patrones"""
+class SmartTextAnalyzer:
+    """Analizador de texto inteligente optimizado para Streamlit Cloud"""
     
     def __init__(self):
-        self.nlp = nlp
+        self.spacy_available = SPACY_AVAILABLE
         self.textblob_available = TEXTBLOB_AVAILABLE
+        self.nlp = nlp
+        
+        # Patrones de negación
         self.negation_patterns = ["no", "nunca", "jamás", "nada", "tampoco", "ni", "sin"]
+        
+        # Intensificadores
         self.intensity_modifiers = {
             "muy": 1.5, "super": 1.7, "extremadamente": 2.0, "bastante": 1.3,
-            "algo": 0.7, "poco": 0.5, "medio": 0.8, "un poco": 0.6
+            "algo": 0.7, "poco": 0.5, "medio": 0.8, "un poco": 0.6,
+            "mucho": 1.4, "demasiado": 1.6, "increíblemente": 1.8
         }
         
-    def analyze_message(self, text, sender, timestamp, config, dictionary, detection_type):
-        """Análisis NLP completo de un mensaje"""
-        if not self.nlp:
-            return self.basic_analyze_message(text, sender, config, dictionary)
+        # Emociones básicas
+        self.positive_emotions = ["amor", "cariño", "besos", "abrazos", "feliz", "contento", "alegre", "genial"]
+        self.negative_emotions = ["odio", "rabia", "ira", "triste", "deprimido", "enojado", "furioso", "disgusto"]
         
-        # Preprocessing inteligente
-        cleaned_text = self.smart_preprocessing(text)
-        doc = self.nlp(cleaned_text)
+    def analyze_message(self, text, sender, timestamp, config, dictionary, detection_type):
+        """Análisis principal del mensaje con fallback inteligente"""
+        
+        # Preprocesamiento básico
+        cleaned_text = self.preprocess_text(text)
         
         # Análisis multidimensional
         analysis_results = {
             'sentiment': self.analyze_sentiment(text),
-            'entities': self.extract_entities(doc),
-            'negation': self.detect_negation_context(doc),
-            'intensity': self.calculate_intensity(doc, text),
-            'context': self.analyze_context(doc, dictionary, detection_type),
-            'grammar': self.analyze_grammar(doc),
-            'temporal': self.analyze_temporal_patterns(timestamp)
+            'negation': self.detect_negation_simple(cleaned_text),
+            'intensity': self.calculate_intensity(text, cleaned_text),
+            'emotion': self.analyze_basic_emotion(cleaned_text),
+            'context': self.analyze_context_smart(cleaned_text, dictionary, detection_type),
+            'temporal': self.analyze_temporal_patterns(timestamp),
+            'patterns': self.detect_behavioral_patterns(cleaned_text, detection_type)
         }
         
-        # Puntuación inteligente específica por tipo
-        smart_score = self.calculate_smart_score(analysis_results, config, dictionary, detection_type)
+        # Si spaCy está disponible, usar análisis avanzado
+        if self.spacy_available and self.nlp:
+            analysis_results.update(self.advanced_spacy_analysis(cleaned_text))
+        
+        # Calcular puntuación inteligente
+        base_score = self.calculate_base_score(cleaned_text, dictionary)
+        smart_score = self.calculate_contextual_score(base_score, analysis_results, detection_type)
         
         # Palabras detectadas
         detected_words = self.get_detected_words(text, dictionary)
         
-        # Explicación del resultado
-        explanation = self.generate_explanation(analysis_results, smart_score, detection_type)
+        # Explicación detallada
+        explanation = self.generate_comprehensive_explanation(analysis_results, smart_score, detection_type)
         
         label = "DETECTADO" if smart_score > config['threshold'] else "NO DETECTADO"
         
         return smart_score, label, detected_words, analysis_results, explanation
     
-    def smart_preprocessing(self, text):
-        """Limpieza inteligente del texto"""
+    def preprocess_text(self, text):
+        """Preprocesamiento inteligente del texto"""
+        text = text.lower()
+        
         # Normalizar emojis emocionales
-        text = re.sub(r'[😍😘❤️💕💖😻🥰]', ' _expresion_afectiva_ ', text)
-        text = re.sub(r'[😠😡🤬👿💢]', ' _expresion_agresiva_ ', text)
-        text = re.sub(r'[😢😭💔😞😔]', ' _expresion_triste_ ', text)
-        text = re.sub(r'[😏😈🔥💦]', ' _expresion_sugestiva_ ', text)
+        emoji_patterns = {
+            r'[😍😘❤️💕💖😻🥰💘]': ' _expresion_amor_ ',
+            r'[😠😡🤬👿💢😤]': ' _expresion_rabia_ ',
+            r'[😢😭💔😞😔🥺]': ' _expresion_tristeza_ ',
+            r'[😏😈🔥💦🍆🍑]': ' _expresion_sexual_ ',
+            r'[🤮🤢💩👎]': ' _expresion_disgusto_ '
+        }
+        
+        for pattern, replacement in emoji_patterns.items():
+            text = re.sub(pattern, replacement, text)
         
         # Normalizar repeticiones: "hoooola" -> "hola"
-        text = re.sub(r'(.)\1{2,}', r'\1\1', text)
+        text = re.sub(r'(.)\1{3,}', r'\1\1', text)
         
-        # Normalizar variaciones escritas
+        # Normalizar variaciones de escritura comunes
         replacements = {
             r's[3e]xy': 'sexy', r'k[1i]ero': 'quiero', r'h3rm0sa': 'hermosa',
-            r'b[3e]ll[4a]': 'bella', r'amor3s': 'amores', r'bb': 'bebé'
+            r'b[3e]ll[4a]': 'bella', r'amor3s': 'amores', r'\bb+b+\b': 'bebe',
+            r'x+d+': 'xd', r'jaj+a*': 'jaja', r'jej+e*': 'jeje'
         }
         
         for pattern, replacement in replacements.items():
@@ -223,283 +221,350 @@ class AdvancedNLPAnalyzer:
         return text
     
     def analyze_sentiment(self, text):
-        """Análisis de sentimientos con TextBlob"""
-        if not self.textblob_available:
-            return {'polarity': 0, 'subjectivity': 0, 'interpretation': 'neutral', 'confidence': 0}
+        """Análisis de sentimientos con TextBlob o fallback básico"""
+        if self.textblob_available:
+            try:
+                from textblob import TextBlob
+                blob = TextBlob(text)
+                polarity = blob.sentiment.polarity
+                subjectivity = blob.sentiment.subjectivity
+                
+                if polarity > 0.3:
+                    interpretation = "positivo"
+                elif polarity < -0.3:
+                    interpretation = "negativo"
+                else:
+                    interpretation = "neutral"
+                
+                return {
+                    'polarity': polarity,
+                    'subjectivity': subjectivity,
+                    'interpretation': interpretation,
+                    'confidence': abs(polarity),
+                    'method': 'textblob'
+                }
+            except Exception:
+                pass
         
-        try:
-            blob = TextBlob(text)
-            polarity = blob.sentiment.polarity
-            subjectivity = blob.sentiment.subjectivity
-            
-            # Interpretación contextual
-            if polarity > 0.3:
-                interpretation = "positivo"
-            elif polarity < -0.3:
-                interpretation = "negativo"
-            else:
-                interpretation = "neutral"
-            
-            return {
-                'polarity': polarity,
-                'subjectivity': subjectivity,
-                'interpretation': interpretation,
-                'confidence': abs(polarity)
-            }
-        except:
-            return {'polarity': 0, 'subjectivity': 0, 'interpretation': 'neutral', 'confidence': 0}
+        # Fallback: análisis básico de sentimientos
+        return self.basic_sentiment_analysis(text)
     
-    def detect_negation_context(self, doc):
-        """Detecta negaciones y su contexto específico"""
+    def basic_sentiment_analysis(self, text):
+        """Análisis básico de sentimientos sin dependencias"""
+        positive_words = ["bien", "bueno", "genial", "excelente", "perfecto", "increíble", "fantástico", "maravilloso"]
+        negative_words = ["mal", "malo", "terrible", "horrible", "awful", "pesimo", "desastre", "odioso"]
+        
+        text_lower = text.lower()
+        positive_count = sum(1 for word in positive_words if word in text_lower)
+        negative_count = sum(1 for word in negative_words if word in text_lower)
+        
+        if positive_count > negative_count:
+            polarity = 0.5
+            interpretation = "positivo"
+        elif negative_count > positive_count:
+            polarity = -0.5
+            interpretation = "negativo"
+        else:
+            polarity = 0.0
+            interpretation = "neutral"
+        
+        return {
+            'polarity': polarity,
+            'subjectivity': 0.5,
+            'interpretation': interpretation,
+            'confidence': abs(polarity),
+            'method': 'basic'
+        }
+    
+    def detect_negation_simple(self, text):
+        """Detección simple pero efectiva de negaciones"""
+        words = text.split()
         negations = []
         
-        for token in doc:
-            if token.lemma_.lower() in self.negation_patterns:
-                # Encontrar qué está siendo negado
-                negated_concepts = []
+        for i, word in enumerate(words):
+            if word in self.negation_patterns:
+                # Buscar contexto (siguientes 3 palabras)
+                context = words[i+1:i+4] if i+1 < len(words) else []
                 
-                # Buscar en dependencias
-                for child in token.children:
-                    if child.pos_ in ["ADJ", "NOUN", "VERB"]:
-                        negated_concepts.append(child.lemma_.lower())
-                
-                # Buscar en contexto cercano (3 palabras adelante)
-                start_idx = max(0, token.i)
-                end_idx = min(len(doc), token.i + 4)
-                
-                for i in range(start_idx + 1, end_idx):
-                    if doc[i].pos_ in ["ADJ", "NOUN", "VERB"]:
-                        negated_concepts.append(doc[i].lemma_.lower())
+                # Calcular fuerza de la negación
+                strength = 1.0 if word in ["nunca", "jamás", "nada"] else 0.8
                 
                 negations.append({
-                    'negation_word': token.text,
-                    'negated_concepts': negated_concepts,
-                    'position': token.i,
-                    'strength': self.calculate_negation_strength(token, doc)
+                    'word': word,
+                    'position': i,
+                    'context': context,
+                    'strength': strength
                 })
         
         return negations
     
-    def calculate_negation_strength(self, neg_token, doc):
-        """Calcula la fuerza de la negación"""
-        strong_negations = ["nunca", "jamás", "nada"]
-        if neg_token.lemma_.lower() in strong_negations:
-            return 1.0
-        elif neg_token.lemma_.lower() == "no":
-            return 0.8
-        else:
-            return 0.6
-    
-    def extract_entities(self, doc):
-        """Extrae entidades nombradas"""
-        entities = {
-            'persons': [], 'locations': [], 'organizations': [], 
-            'dates': [], 'other': []
-        }
-        
-        for ent in doc.ents:
-            if ent.label_ in ["PER", "PERSON"]:
-                entities['persons'].append(ent.text)
-            elif ent.label_ in ["LOC", "GPE"]:
-                entities['locations'].append(ent.text)
-            elif ent.label_ in ["ORG"]:
-                entities['organizations'].append(ent.text)
-            elif ent.label_ in ["DATE", "TIME"]:
-                entities['dates'].append(ent.text)
-            else:
-                entities['other'].append((ent.text, ent.label_))
-        
-        return entities
-    
-    def calculate_intensity(self, doc, original_text):
+    def calculate_intensity(self, original_text, cleaned_text):
         """Calcula intensidad emocional del mensaje"""
         intensity_score = 1.0
-        intensity_indicators = []
+        indicators = []
         
-        # Modificadores de intensidad
-        for token in doc:
-            if token.lemma_.lower() in self.intensity_modifiers:
-                multiplier = self.intensity_modifiers[token.lemma_.lower()]
+        # Intensificadores en el texto
+        for word, multiplier in self.intensity_modifiers.items():
+            if word in cleaned_text:
                 intensity_score *= multiplier
-                intensity_indicators.append(f"{token.text} ({multiplier}x)")
+                indicators.append(f"{word} ({multiplier}x)")
         
         # MAYÚSCULAS (indica énfasis)
         caps_ratio = sum(1 for c in original_text if c.isupper()) / max(len(original_text), 1)
         if caps_ratio > 0.3:
             intensity_score *= 1.4
-            intensity_indicators.append(f"MAYÚSCULAS ({caps_ratio:.0%})")
+            indicators.append(f"MAYÚSCULAS ({caps_ratio:.0%})")
         
         # Signos de puntuación enfáticos
-        exclamation_count = original_text.count('!')
-        question_count = original_text.count('?')
+        exclamations = original_text.count('!')
+        questions = original_text.count('?')
         
-        if exclamation_count > 1:
-            multiplier = 1 + (exclamation_count - 1) * 0.15
+        if exclamations > 1:
+            multiplier = 1 + (exclamations - 1) * 0.15
             intensity_score *= multiplier
-            intensity_indicators.append(f"!×{exclamation_count}")
+            indicators.append(f"!×{exclamations}")
         
-        if question_count > 2:
+        if questions > 2:
             intensity_score *= 1.2
-            intensity_indicators.append(f"?×{question_count}")
+            indicators.append(f"?×{questions}")
+        
+        # Repetición de letras (holaaa, siiii)
+        repetition_pattern = r'(.)\1{2,}'
+        if re.search(repetition_pattern, original_text):
+            intensity_score *= 1.2
+            indicators.append("repeticiones")
         
         return {
             'score': min(intensity_score, 3.0),
-            'indicators': intensity_indicators
+            'indicators': indicators
         }
     
-    def analyze_context(self, doc, dictionary, detection_type):
-        """Analiza contexto específico según el tipo de detección"""
+    def analyze_basic_emotion(self, text):
+        """Análisis básico de emociones"""
+        positive_count = sum(1 for word in self.positive_emotions if word in text)
+        negative_count = sum(1 for word in self.negative_emotions if word in text)
+        
+        # Detectar emociones específicas por expresiones
+        emotion_expressions = {
+            '_expresion_amor_': 'romántico',
+            '_expresion_rabia_': 'agresivo',
+            '_expresion_tristeza_': 'melancólico',
+            '_expresion_sexual_': 'sexual',
+            '_expresion_disgusto_': 'desprecio'
+        }
+        
+        detected_expressions = []
+        for expr, emotion in emotion_expressions.items():
+            if expr in text:
+                detected_expressions.append(emotion)
+        
+        if positive_count > negative_count:
+            return {'tone': 'positivo', 'strength': positive_count, 'expressions': detected_expressions}
+        elif negative_count > positive_count:
+            return {'tone': 'negativo', 'strength': negative_count, 'expressions': detected_expressions}
+        else:
+            return {'tone': 'neutral', 'strength': 0, 'expressions': detected_expressions}
+    
+    def analyze_context_smart(self, text, dictionary, detection_type):
+        """Análisis de contexto mejorado"""
         context_analysis = {
-            'workplace_context': 0,
-            'relationship_context': 0,
-            'family_context': 0,
-            'aggressive_context': 0,
-            'sexual_context': 0,
-            'emotional_context': 0,
-            'social_context': 0
+            'laboral': 0, 'romántico': 0, 'familiar': 0, 'agresivo': 0,
+            'sexual': 0, 'social': 0, 'temporal': 0
         }
         
-        # Contextos específicos según tipo de detección
+        # Términos por contexto
         context_terms = {
-            'workplace_context': ["jefe", "trabajo", "oficina", "reunión", "proyecto", "cliente", "empresa", "ascenso"],
-            'relationship_context': ["amor", "novio", "novia", "pareja", "cita", "salir", "beso", "abrazo"],
-            'family_context': ["familia", "papá", "mamá", "hermano", "hermana", "hijo", "hija", "casa"],
-            'aggressive_context': ["odio", "matar", "golpear", "destruir", "venganza", "rabia", "ira"],
-            'sexual_context': dictionary.get('high_risk', []) + dictionary.get('medium_risk', []),
-            'emotional_context': ["triste", "feliz", "enojado", "deprimido", "ansioso", "estresado"],
-            'social_context': ["amigos", "fiesta", "reunión", "grupo", "clase", "escuela"]
+            'laboral': ['jefe', 'trabajo', 'oficina', 'reunión', 'proyecto', 'empresa', 'ascenso', 'salario'],
+            'romántico': ['amor', 'cariño', 'besos', 'pareja', 'novio', 'novia', 'cita', 'te amo'],
+            'familiar': ['familia', 'papá', 'mamá', 'hermano', 'hermana', 'hijo', 'hija', 'casa', 'hogar'],
+            'agresivo': ['odio', 'matar', 'golpear', 'destruir', 'venganza', 'rabia', 'pelea'],
+            'sexual': dictionary.get('high_risk', []) + dictionary.get('medium_risk', []),
+            'social': ['amigos', 'fiesta', 'grupo', 'clase', 'escuela', 'universidad', 'compañeros'],
+            'temporal': ['noche', 'madrugada', 'tarde', 'mañana', 'después', 'luego', 'pronto']
         }
         
-        # Calcular puntuaciones de contexto
+        # Calcular scores de contexto
         for context_type, terms in context_terms.items():
-            matches = 0
-            for token in doc:
-                if token.lemma_.lower() in [term.lower() for term in terms]:
-                    matches += 1
-            
-            # Normalizar score
+            matches = sum(1 for term in terms if term in text)
+            # Normalizar por número esperado de términos
             max_expected = 3
             context_analysis[context_type] = min(matches / max_expected, 1.0)
         
         return context_analysis
     
-    def analyze_grammar(self, doc):
-        """Analiza patrones gramaticales"""
-        grammar_patterns = {
-            'imperatives': 0,
-            'questions': 0,
-            'conditionals': 0,
-            'personal_pronouns': 0
+    def analyze_temporal_patterns(self, timestamp):
+        """Análisis de patrones temporales"""
+        try:
+            # Extraer hora del timestamp
+            hour_match = re.search(r'(\d{1,2}):(\d{2})', timestamp)
+            if hour_match:
+                hour = int(hour_match.group(1))
+                
+                # Determinar período del día
+                if 6 <= hour <= 12:
+                    period = "mañana"
+                elif 12 <= hour <= 18:
+                    period = "tarde"
+                elif 18 <= hour <= 22:
+                    period = "noche"
+                else:
+                    period = "madrugada"
+                
+                return {
+                    'hour': hour,
+                    'period': period,
+                    'is_night': hour >= 22 or hour <= 6,
+                    'is_late': hour >= 23 or hour <= 5,
+                    'is_work_hours': 9 <= hour <= 18
+                }
+        except Exception:
+            pass
+        
+        return {
+            'hour': None, 'period': 'desconocido', 'is_night': False,
+            'is_late': False, 'is_work_hours': False
+        }
+    
+    def detect_behavioral_patterns(self, text, detection_type):
+        """Detecta patrones de comportamiento específicos"""
+        patterns = {
+            'Acoso Sexual': [
+                r'\b(solos?\s+(?:tu\s+y\s+yo|nosotros))\b',
+                r'\b(secreto\s+(?:entre|nuestro))\b',
+                r'\b(no\s+(?:le\s+)?dig[au]s?)\b',
+                r'\b(encuentro\s+privado)\b'
+            ],
+            'CyberBullying': [
+                r'\b(todos\s+(?:te\s+odian|se\s+ríen))\b',
+                r'\b(nadie\s+(?:te\s+quiere|te\s+aguanta))\b',
+                r'\b(eres\s+(?:un|una)\s+\w+)\b',
+                r'\b(no\s+sirves?)\b'
+            ],
+            'Infidelidades': [
+                r'\b(no\s+(?:puede|debe)\s+saber)\b',
+                r'\b(entre\s+nosotros)\b',
+                r'\b(tengo\s+(?:pareja|esposo|esposa))\b',
+                r'\b(es\s+complicado)\b'
+            ]
         }
         
-        for token in doc:
-            if token.pos_ == "VERB" and token.dep_ == "ROOT":
-                grammar_patterns['imperatives'] += 1
-            
-            if token.pos_ == "PRON" and token.dep_ in ["nsubj", "obj"]:
-                grammar_patterns['personal_pronouns'] += 1
+        detected_patterns = []
+        if detection_type in patterns:
+            for pattern in patterns[detection_type]:
+                matches = re.findall(pattern, text, re.IGNORECASE)
+                if matches:
+                    detected_patterns.extend(matches)
         
-        text = doc.text.lower()
-        if '?' in text:
-            grammar_patterns['questions'] = text.count('?')
-        
-        if any(word in text for word in ['si', 'cuando', 'donde', 'como']):
-            grammar_patterns['conditionals'] += 1
-        
-        return grammar_patterns
+        return detected_patterns
     
-    def analyze_temporal_patterns(self, timestamp):
-        """Analiza patrones temporales"""
+    def advanced_spacy_analysis(self, text):
+        """Análisis avanzado con spaCy si está disponible"""
+        if not self.spacy_available or not self.nlp:
+            return {}
+        
         try:
-            dt = self.parse_timestamp(timestamp)
-            if not dt:
-                return {'hour': None, 'is_night': False, 'is_weekend': False}
+            doc = self.nlp(text)
+            
+            # Análisis de entidades
+            entities = {
+                'persons': [ent.text for ent in doc.ents if ent.label_ in ["PER", "PERSON"]],
+                'locations': [ent.text for ent in doc.ents if ent.label_ in ["LOC", "GPE"]],
+                'organizations': [ent.text for ent in doc.ents if ent.label_ == "ORG"]
+            }
+            
+            # Análisis gramatical
+            pos_tags = [token.pos_ for token in doc]
+            verb_count = pos_tags.count('VERB')
+            noun_count = pos_tags.count('NOUN')
+            adj_count = pos_tags.count('ADJ')
             
             return {
-                'hour': dt.hour,
-                'is_night': dt.hour >= 22 or dt.hour <= 6,
-                'is_weekend': dt.weekday() >= 5,
-                'day_of_week': dt.weekday()
+                'entities': entities,
+                'grammar': {
+                    'verbs': verb_count,
+                    'nouns': noun_count,
+                    'adjectives': adj_count,
+                    'complexity': len(set(pos_tags)) / len(pos_tags) if pos_tags else 0
+                },
+                'spacy_available': True
             }
-        except:
-            return {'hour': None, 'is_night': False, 'is_weekend': False}
+        except Exception:
+            return {'spacy_available': False}
     
-    def parse_timestamp(self, timestamp_str):
-        """Parsea diferentes formatos de timestamp"""
-        formats = [
-            "%d/%m/%y, %I:%M %p",
-            "%d/%m/%Y, %H:%M",
-            "%d/%m/%y %H:%M",
-            "[%d/%m/%y, %I:%M:%S %p]",
-            "%d/%m/%Y %I:%M %p"
-        ]
+    def calculate_base_score(self, text, dictionary):
+        """Calcula puntuación base usando el diccionario"""
+        high_matches = sum(1 for term in dictionary.get('high_risk', []) if term in text)
+        medium_matches = sum(1 for term in dictionary.get('medium_risk', []) if term in text)
+        context_matches = sum(1 for term in dictionary.get('context_phrases', []) if term in text)
+        work_matches = sum(1 for term in dictionary.get('work_context', []) if term in text)
         
-        for fmt in formats:
-            try:
-                return datetime.strptime(timestamp_str.strip('[]'), fmt)
-            except:
-                continue
-        return None
+        total_terms = (len(dictionary.get('high_risk', [])) + 
+                      len(dictionary.get('medium_risk', [])))
+        
+        if total_terms == 0:
+            return 0
+        
+        # Puntuación ponderada
+        score = ((high_matches * 0.8) + 
+                (medium_matches * 0.4) + 
+                (context_matches * 0.3) + 
+                (work_matches * 0.2)) / max(total_terms, 1)
+        
+        return min(score, 1.0)
     
-    def calculate_smart_score(self, analysis_results, config, dictionary, detection_type):
-        """Calcula puntuación inteligente específica por tipo de detección"""
-        # Score base
-        base_score = self.calculate_base_score(analysis_results, dictionary)
+    def calculate_contextual_score(self, base_score, analysis, detection_type):
+        """Calcula puntuación final considerando contexto"""
+        score = base_score
         
-        # Ajustes por sentimiento
-        sentiment = analysis_results['sentiment']
-        sentiment_multiplier = 1.0
-        
-        if detection_type == "Acoso Sexual":
-            if sentiment['polarity'] > 0.2:
-                sentiment_multiplier = 1.2
-        elif detection_type == "CyberBullying":
-            if sentiment['polarity'] < -0.3:
-                sentiment_multiplier = 1.4
-        elif detection_type == "Infidelidades":
-            if abs(sentiment['polarity']) > 0.3:
-                sentiment_multiplier = 1.2
-        
-        base_score *= sentiment_multiplier
-        
-        # Ajustes por negación
-        negations = analysis_results['negation']
+        # Ajustar por negaciones
+        negations = analysis['negation']
         for negation in negations:
             reduction = negation['strength'] * 0.4
-            base_score *= (1 - reduction)
+            score *= (1 - reduction)
         
-        # Ajustes por intensidad
-        intensity = analysis_results['intensity']['score']
-        base_score *= intensity
+        # Ajustar por intensidad
+        intensity = analysis['intensity']['score']
+        score *= intensity
         
-        # Ajustes específicos por contexto y tipo de detección
-        context = analysis_results['context']
-        
+        # Ajustar por sentimientos
+        sentiment = analysis['sentiment']
         if detection_type == "Acoso Sexual":
-            if context['workplace_context'] > 0.5 and context['sexual_context'] > 0.3:
-                base_score *= 1.8
-            elif context['relationship_context'] > 0.6:
-                base_score *= 0.7
-                
+            if sentiment['polarity'] > 0.2:
+                score *= 1.2
         elif detection_type == "CyberBullying":
-            if context['aggressive_context'] > 0.4 and context['social_context'] > 0.3:
-                base_score *= 1.6
-            elif context['family_context'] > 0.5:
-                base_score *= 1.2
-                
+            if sentiment['polarity'] < -0.3:
+                score *= 1.4
         elif detection_type == "Infidelidades":
-            if context['emotional_context'] > 0.4 and context['relationship_context'] > 0.4:
-                base_score *= 1.4
-            temporal = analysis_results['temporal']
-            if temporal['is_night']:
-                base_score *= 1.2
+            if abs(sentiment['polarity']) > 0.3:
+                score *= 1.2
         
-        return min(base_score, 1.0)
-    
-    def calculate_base_score(self, analysis_results, dictionary):
-        """Calcula score base usando términos del diccionario"""
-        # Implementar la lógica básica de scoring
-        return 0.5  # Placeholder
+        # Ajustar por contexto específico
+        context = analysis['context']
+        if detection_type == "Acoso Sexual":
+            if context['laboral'] > 0.5 and context['sexual'] > 0.3:
+                score *= 1.8  # Acoso laboral es muy grave
+            elif context['romántico'] > 0.6:
+                score *= 0.7  # En contexto romántico es menos grave
+        
+        elif detection_type == "CyberBullying":
+            if context['agresivo'] > 0.4:
+                score *= 1.6
+            if context['social'] > 0.3:
+                score *= 1.3
+        
+        elif detection_type == "Infidelidades":
+            if context['romántico'] > 0.4:
+                score *= 1.4
+            temporal = analysis['temporal']
+            if temporal['is_night']:
+                score *= 1.2
+        
+        # Bonificación por patrones específicos
+        patterns = analysis['patterns']
+        if patterns:
+            score *= (1 + len(patterns) * 0.2)
+        
+        return min(score, 1.0)
     
     def get_detected_words(self, text, dictionary):
         """Obtiene palabras detectadas del diccionario"""
@@ -513,53 +578,53 @@ class AdvancedNLPAnalyzer:
         
         return detected
     
-    def generate_explanation(self, analysis_results, score, detection_type):
-        """Genera explicación detallada del resultado"""
+    def generate_comprehensive_explanation(self, analysis, score, detection_type):
+        """Genera explicación detallada del análisis"""
         explanations = []
         
-        sentiment = analysis_results['sentiment']
+        # Sentimiento
+        sentiment = analysis['sentiment']
         if sentiment['confidence'] > 0.3:
             explanations.append(f"Sentimiento {sentiment['interpretation']} ({sentiment['polarity']:.2f})")
         
-        negations = analysis_results['negation']
+        # Negaciones
+        negations = analysis['negation']
         if negations:
             explanations.append(f"Negaciones: {len(negations)}")
         
-        intensity = analysis_results['intensity']
+        # Intensidad
+        intensity = analysis['intensity']
         if intensity['score'] > 1.3:
             explanations.append(f"Alta intensidad ({intensity['score']:.1f}x)")
         
-        context = analysis_results['context']
+        # Contexto dominante
+        context = analysis['context']
         max_context = max(context.items(), key=lambda x: x[1])
         if max_context[1] > 0.4:
-            context_name = max_context[0].replace('_context', '').replace('_', ' ')
-            explanations.append(f"Contexto: {context_name}")
+            explanations.append(f"Contexto {max_context[0]}")
         
-        if detection_type == "Infidelidades":
-            temporal = analysis_results['temporal']
-            if temporal['is_night']:
-                explanations.append("Horario nocturno")
+        # Emociones específicas
+        emotion = analysis['emotion']
+        if emotion['expressions']:
+            explanations.append(f"Expresiones: {', '.join(emotion['expressions'])}")
         
-        return " | ".join(explanations) if explanations else "Análisis básico"
-    
-    def basic_analyze_message(self, text, sender, config, dictionary):
-        """Fallback al análisis básico si NLP no está disponible"""
-        text_lower = text.lower()
+        # Patrones específicos
+        patterns = analysis['patterns']
+        if patterns:
+            explanations.append(f"Patrones detectados: {len(patterns)}")
         
-        high_matches = sum(1 for term in dictionary.get('high_risk', []) if term in text_lower)
-        medium_matches = sum(1 for term in dictionary.get('medium_risk', []) if term in text_lower)
+        # Información temporal
+        temporal = analysis['temporal']
+        if temporal['is_night']:
+            explanations.append("Horario nocturno")
         
-        total_terms = len(dictionary.get('high_risk', [])) + len(dictionary.get('medium_risk', []))
-        if total_terms == 0:
-            risk_score = 0
-        else:
-            risk_score = (high_matches * 0.7 + medium_matches * 0.3) / total_terms
+        # Método de análisis
+        method = "NLP completo" if self.spacy_available else "Análisis inteligente"
+        if sentiment['method'] == 'textblob':
+            method += " + TextBlob"
         
-        detected_words = [term for term in dictionary.get('high_risk', []) + dictionary.get('medium_risk', []) if term in text_lower]
-        
-        label = "DETECTADO" if risk_score > config['threshold'] else "NO DETECTADO"
-        
-        return risk_score, label, detected_words, {}, "Análisis básico (sin NLP)"
+        explanation_text = " | ".join(explanations) if explanations else "Análisis básico"
+        return f"{explanation_text} ({method})"
 
 def setup_sensitivity(level, custom_threshold=None):
     """Configura niveles de sensibilidad"""
@@ -612,6 +677,22 @@ def get_csv_format_instructions():
     | `contexto_emocional` | Expresiones emocionales | 😢 **Emocional** (0.3) |
     | `contexto_digital` | Términos digitales/redes | 📱 **Digital** (0.3) |
     | `contexto_sustancias` | Referencias a sustancias | 🚫 **Sustancias** (0.5) |
+    
+    ### **Ejemplo Completo:**
+    ```csv
+    termino,categoria
+    sexy,palabras_alta
+    hermosa,palabras_media
+    atractiva,palabras_media
+    solos,frases_contexto
+    secreto,frases_contexto
+    jefe,contexto_laboral
+    ascenso,contexto_laboral
+    amor,contexto_relacion
+    beso,contexto_relacion
+    odio,contexto_agresion
+    matar,contexto_agresion
+    ```
     """
 
 def load_dictionary_from_file(uploaded_file):
@@ -634,6 +715,7 @@ def load_dictionary_from_file(uploaded_file):
         expected_headers = ['termino', 'categoria']
         if not all(header in reader.fieldnames for header in expected_headers):
             st.error(f"❌ El archivo debe tener las columnas: {', '.join(expected_headers)}")
+            st.error(f"📋 Columnas encontradas: {', '.join(reader.fieldnames)}")
             return None
         
         category_map = {
@@ -651,6 +733,7 @@ def load_dictionary_from_file(uploaded_file):
         
         valid_categories = set(category_map.keys())
         loaded_terms = 0
+        invalid_categories = set()
         
         for row in reader:
             if not row['termino'] or row['termino'].startswith('#'):
@@ -659,14 +742,32 @@ def load_dictionary_from_file(uploaded_file):
             term = row['termino'].strip().lower()
             category = row['categoria'].strip().lower()
             
-            if category in valid_categories:
-                mapped_category = category_map[category]
-                if term and term not in dictionary[mapped_category]:
-                    dictionary[mapped_category].append(term)
-                    loaded_terms += 1
+            if category not in valid_categories:
+                invalid_categories.add(category)
+                continue
+            
+            mapped_category = category_map[category]
+            if term and term not in dictionary[mapped_category]:
+                dictionary[mapped_category].append(term)
+                loaded_terms += 1
+        
+        if invalid_categories:
+            st.warning(f"⚠️ Categorías inválidas ignoradas: {', '.join(invalid_categories)}")
         
         if loaded_terms > 0:
             st.success(f"✅ Diccionario cargado: {loaded_terms} términos")
+            
+            # Mostrar distribución
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Alto Riesgo", len(dictionary['high_risk']))
+            with col2:
+                st.metric("Riesgo Medio", len(dictionary['medium_risk']))
+            with col3:
+                st.metric("Contexto", len(dictionary['context_phrases']))
+            with col4:
+                st.metric("Laboral", len(dictionary['work_context']))
+            
             return dictionary
         else:
             st.error("❌ No se pudieron cargar términos válidos")
@@ -684,22 +785,26 @@ def get_predefined_dictionaries():
                 "desnuda", "desnudo", "fotos íntimas", "sexo", "sexual", "tocarte", 
                 "te quiero tocar", "quiero verte", "excitado", "excitada", "cuerpo",
                 "te deseo", "sexy", "sensual", "provocativa", "cama", "dormir juntos",
-                "masaje", "besos", "caricias", "intimidad", "placer", "fantasía"
+                "masaje", "besos", "caricias", "intimidad", "placer", "fantasía",
+                "seducir", "tentación", "erótico", "voluptuosa", "cachonda", "caliente"
             ],
             'medium_risk': [
                 "atractiva", "atractivo", "guapa", "guapo", "bonita", "bonito",
                 "nena", "nene", "bebé", "cariño", "amor", "corazón", "linda", "hermosa",
-                "preciosa", "bella", "encantadora", "seductora"
+                "preciosa", "bella", "encantadora", "seductora", "divina", "diosa",
+                "princesa", "reina", "dulzura", "ternura"
             ],
             'context_phrases': [
                 "solos", "solas", "hotel", "privado", "secreto", "nadie", "no le digas",
                 "entre nosotros", "nuestro secreto", "me gustas", "me encanta",
-                "encuentro privado", "cita secreta", "momento íntimo"
+                "encuentro privado", "cita secreta", "momento íntimo", "lugar reservado",
+                "cuando estemos solos", "sin que nadie sepa"
             ],
             'work_context': [
                 "jefe", "jefa", "supervisor", "gerente", "director", "ascenso",
                 "promoción", "evaluación", "contrato", "reconocimiento", "bono",
-                "reunión privada", "horas extra", "viaje de negocios"
+                "reunión privada", "horas extra", "viaje de negocios", "después del trabajo",
+                "oficina", "despacho", "proyecto", "empresa"
             ]
         },
         "CyberBullying": {
@@ -707,57 +812,75 @@ def get_predefined_dictionaries():
                 "idiota", "estúpido", "imbécil", "retrasado", "inútil", "basura",
                 "escoria", "patético", "perdedor", "fracasado", "nadie te quiere",
                 "todos te odian", "eres repugnante", "das asco", "vete a morir",
-                "suicídate", "mátate", "no vales nada", "eres una mierda"
+                "suicídate", "mátate", "no vales nada", "eres una mierda", "despreciable",
+                "asqueroso", "aberración", "escupitajo", "lacra", "parásito", "cucaracha"
             ],
             'medium_risk': [
                 "burla", "ridículo", "vergüenza", "raro", "fenómeno", "bicho raro",
                 "inadaptado", "antisocial", "extraño", "anormal", "loco", "chiflado",
-                "payaso", "tonto", "bobo", "ignorante"
+                "payaso", "tonto", "bobo", "ignorante", "torpe", "incapaz", "débil",
+                "cobarde", "llorica"
             ],
             'context_phrases': [
                 "todos se ríen de ti", "nadie quiere ser tu amigo", "siempre estás solo",
                 "no tienes amigos", "eres invisible", "no perteneces aquí",
-                "mejor no vengas", "nadie te invitó", "sobras aquí"
+                "mejor no vengas", "nadie te invitó", "sobras aquí", "estás de más",
+                "no encajas", "eres el hazmerreír", "todos hablan de ti"
             ],
             'work_context': [
                 "redes sociales", "facebook", "instagram", "twitter", "publicar",
                 "etiquetar", "compartir", "viral", "meme", "story", "post",
-                "grupo", "chat", "clase", "escuela", "colegio"
+                "grupo", "chat", "clase", "escuela", "colegio", "compañeros",
+                "universidad", "instituto"
             ]
         },
         "Infidelidades": {
             'high_risk': [
                 "te amo", "te quiero", "mi amor", "amor mío", "mi vida", "corazón",
                 "besos", "te extraño", "te necesito", "eres especial", "único",
-                "única", "no se lo digas", "secreto", "clandestino", "oculto"
+                "única", "no se lo digas", "secreto", "clandestino", "oculto",
+                "amor prohibido", "relación secreta", "aventura", "escapada",
+                "mi alma gemela", "eres todo para mí"
             ],
             'medium_risk': [
                 "cariño", "querido", "querida", "tesoro", "cielo", "precioso",
-                "preciosa", "encanto", "dulzura", "ternura", "especial"
+                "preciosa", "encanto", "dulzura", "ternura", "especial",
+                "importante", "diferente", "comprensión", "conexión", "química",
+                "atracción", "feeling"
             ],
             'context_phrases': [
                 "entre nosotros", "nadie debe saber", "nuestro secreto", "solo tú y yo",
                 "cuando estemos solos", "no puede enterarse", "es complicado",
-                "situación difícil", "tengo pareja", "estoy casado", "estoy casada"
+                "situación difícil", "tengo pareja", "estoy casado", "estoy casada",
+                "mi esposo no", "mi esposa no", "relación complicada", "no es el momento"
             ],
             'work_context': [
                 "esposo", "esposa", "marido", "mujer", "novio", "novia", "pareja",
                 "familia", "casa", "hogar", "compromiso", "relación", "matrimonio",
-                "encuentro", "verse", "quedar", "cita", "hotel", "lugar privado"
+                "encuentro", "verse", "quedar", "cita", "hotel", "lugar privado",
+                "escaparse", "mentir", "coartada", "excusa", "disimular"
             ]
         }
     }
 
 def extract_messages_from_text(content):
-    """Extrae mensajes de texto de WhatsApp con mejor parsing"""
+    """Extrae mensajes de texto de WhatsApp con parsing robusto"""
     patterns = [
+        # Formato Android común con AM/PM
         r'(\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}\s[ap]\.?\s?m\.?)\s*-\s*([^:]+?):\s*(.+)',
+        # Formato con corchetes
         r'\[(\d{1,2}/\d{1,2}/\d{2,4}(?:,|\s)\s*\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\]\s*([^:]+?):\s*(.+)',
+        # Formato simple sin AM/PM
         r'(\d{1,2}/\d{1,2}/\d{2,4}\s+\d{1,2}:\d{2}(?:\s*[APap][Mm])?)\s*-\s*([^:]+?):\s*(.+)',
-        r'(\d{1,2}/\d{1,2}/\d{4},\s*\d{1,2}:\d{2})\s*-\s*([^:]+?):\s*(.+)'
+        # Formato ISO con coma
+        r'(\d{1,2}/\d{1,2}/\d{4},\s*\d{1,2}:\d{2})\s*-\s*([^:]+?):\s*(.+)',
+        # Formato alternativo con guión
+        r'(\d{1,2}-\d{1,2}-\d{2,4}\s+\d{1,2}:\d{2})\s*-\s*([^:]+?):\s*(.+)'
     ]
     
     all_matches = []
+    best_pattern_matches = []
+    
     for pattern in patterns:
         matches = re.findall(pattern, content, re.MULTILINE | re.IGNORECASE)
         if matches:
@@ -767,16 +890,26 @@ def extract_messages_from_text(content):
                 sender = match[1].strip()
                 message = match[2].strip()
                 
-                if not message or message.startswith('<Multimedia omitido>') or message.startswith('<Media omitted>'):
+                # Filtrar mensajes del sistema y multimedia
+                system_messages = [
+                    '<multimedia omitido>', '<media omitted>', 'se unió usando', 
+                    'cambió el asunto', 'eliminó este mensaje', 'mensaje eliminado',
+                    'left', 'joined', 'changed subject to'
+                ]
+                
+                if not message or any(sys_msg in message.lower() for sys_msg in system_messages):
+                    continue
+                
+                # Validar que el sender no sea muy largo (probable error de parsing)
+                if len(sender) > 50:
                     continue
                 
                 clean_matches.append((timestamp, sender, message))
             
-            if len(clean_matches) > 5:
-                all_matches = clean_matches
-                break
+            if len(clean_matches) > len(best_pattern_matches):
+                best_pattern_matches = clean_matches
     
-    return all_matches
+    return best_pattern_matches
 
 def create_visualizations(results_df, detection_type):
     """Crea visualizaciones mejoradas de los resultados"""
@@ -784,25 +917,35 @@ def create_visualizations(results_df, detection_type):
     col1, col2 = st.columns(2)
     
     with col1:
+        # Histograma de distribución de riesgo
         fig_hist = px.histogram(
             results_df, 
             x='risk_score', 
-            nbins=20,
-            title=f'📊 Distribución de Riesgo - {detection_type}',
+            nbins=25,
+            title=f'📊 Distribución de Puntuación de Riesgo - {detection_type}',
             labels={'risk_score': 'Puntuación de Riesgo', 'count': 'Cantidad de Mensajes'},
             color_discrete_sequence=['#667eea']
         )
-        fig_hist.add_vline(x=0.6, line_dash="dash", line_color="red", 
-                          annotation_text="Umbral por defecto")
+        
+        # Líneas de referencia
+        fig_hist.add_vline(x=0.45, line_dash="dot", line_color="green", 
+                          annotation_text="Sensibilidad Alta", annotation_position="top")
+        fig_hist.add_vline(x=0.60, line_dash="dash", line_color="orange", 
+                          annotation_text="Sensibilidad Media", annotation_position="top")
+        fig_hist.add_vline(x=0.75, line_dash="solid", line_color="red", 
+                          annotation_text="Sensibilidad Baja", annotation_position="top")
+        
         fig_hist.update_layout(
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
+            showlegend=False
         )
         st.plotly_chart(fig_hist, use_container_width=True)
     
     with col2:
+        # Gráfico de detecciones por remitente
         detections_by_sender = results_df[results_df['label'] == 'DETECTADO']['sender'].value_counts()
-        if not detections_by_sender.empty:
+        if not detections_by_sender.empty and len(detections_by_sender) > 1:
             fig_pie = px.pie(
                 values=detections_by_sender.values,
                 names=detections_by_sender.index,
@@ -815,16 +958,71 @@ def create_visualizations(results_df, detection_type):
             )
             st.plotly_chart(fig_pie, use_container_width=True)
         else:
-            st.info("📊 No se encontraron detecciones para mostrar")
+            # Gráfico de barras alternativo si hay pocos remitentes
+            sender_stats = results_df.groupby('sender').agg({
+                'risk_score': ['count', 'mean', 'max'],
+                'label': lambda x: (x == 'DETECTADO').sum()
+            }).round(3)
+            sender_stats.columns = ['Total', 'Promedio', 'Máximo', 'Detectados']
+            
+            if len(sender_stats) > 0:
+                fig_bar = px.bar(
+                    x=sender_stats.index,
+                    y=sender_stats['Detectados'],
+                    title=f'🎯 Detecciones por Remitente - {detection_type}',
+                    labels={'x': 'Remitente', 'y': 'Detecciones'},
+                    color_discrete_sequence=['#e74c3c']
+                )
+                st.plotly_chart(fig_bar, use_container_width=True)
+            else:
+                st.info("📊 No hay suficientes datos para visualizar")
+    
+    # Timeline de actividad si hay detecciones
+    detected_df = results_df[results_df['label'] == 'DETECTADO']
+    if len(detected_df) > 0:
+        st.subheader("📅 Timeline de Detecciones")
+        
+        try:
+            # Intentar parsear fechas para timeline
+            detected_df['parsed_date'] = pd.to_datetime(detected_df['timestamp'], errors='coerce', infer_datetime_format=True)
+            detected_df_with_dates = detected_df.dropna(subset=['parsed_date'])
+            
+            if len(detected_df_with_dates) > 0:
+                # Agrupar por día
+                daily_counts = detected_df_with_dates.groupby(detected_df_with_dates['parsed_date'].dt.date).size().reset_index()
+                daily_counts.columns = ['date', 'count']
+                
+                if len(daily_counts) > 1:
+                    fig_timeline = px.line(
+                        daily_counts,
+                        x='date',
+                        y='count',
+                        title='📈 Evolución de Detecciones por Día',
+                        markers=True,
+                        color_discrete_sequence=['#e74c3c']
+                    )
+                    fig_timeline.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        xaxis_title="Fecha",
+                        yaxis_title="Número de Detecciones"
+                    )
+                    st.plotly_chart(fig_timeline, use_container_width=True)
+                else:
+                    st.info("📊 Todas las detecciones ocurrieron en el mismo día")
+            else:
+                st.info("⏰ No se pudieron parsear las fechas para el timeline")
+        except Exception as e:
+            st.info(f"⏰ No se pudo generar timeline temporal: {str(e)}")
 
 def show_instructions():
     """Muestra el instructivo completo de la aplicación"""
     st.markdown("""
-    # 📖 **INSTRUCTIVO COMPLETO - WhatsApp Analyzer NLP**
+    # 📖 **INSTRUCTIVO COMPLETO - WhatsApp Analyzer**
     
     ## 🎯 **¿QUÉ HACE ESTA APLICACIÓN?**
     
-    Esta herramienta analiza conversaciones de WhatsApp para detectar patrones de comportamiento potencialmente problemáticos usando **Inteligencia Artificial (NLP)**. 
+    Esta herramienta analiza conversaciones de WhatsApp para detectar patrones de comportamiento potencialmente problemáticos usando **análisis inteligente de texto**. 
     
     ### **Tipos de Detección Disponibles:**
     
@@ -853,12 +1051,70 @@ def show_instructions():
     5. Selecciona **"Sin archivos multimedia"**
     6. Guarda el archivo `.txt`
     
-    ### **Paso 2: Subir y Analizar**
+    ### **Paso 2: Configurar el Análisis**
+    
+    #### **🎯 Seleccionar Tipo de Detección:**
+    - **Acoso Sexual**: Para detectar comportamientos inapropiados
+    - **CyberBullying**: Para identificar intimidación o agresión
+    - **Infidelidades**: Para encontrar indicios de engaños
+    - **Diccionario Personalizado**: Para usar tus propios términos
+    
+    #### **🎚️ Configurar Sensibilidad:**
+    - **Baja (0.75)**: Conservador - Solo casos evidentes
+    - **Media (0.60)**: Balanceado - Precisión óptima (recomendado)
+    - **Alta (0.45)**: Agresivo - Detecta casos sutiles
+    
+    ### **Paso 3: Subir y Analizar**
     
     1. **Sube el archivo .txt** del chat exportado
     2. **Configura los parámetros** en la barra lateral
     3. **Ejecuta el análisis** (puede tardar varios minutos)
     4. **Revisa los resultados** en las diferentes secciones
+    
+    ## 🧠 **CÓMO FUNCIONA EL ANÁLISIS INTELIGENTE**
+    
+    ### **Características del Sistema:**
+    
+    - **Detección de Negaciones**: Distingue "Eres sexy" de "No eres sexy"
+    - **Análisis de Intensidad**: Reconoce MAYÚSCULAS, !!!, repeticiones
+    - **Contexto Específico**: Adapta el análisis según el tipo de detección
+    - **Análisis Temporal**: Considera horarios (nocturno, laboral)
+    - **Patrones de Comportamiento**: Detecta frases características
+    - **Análisis de Sentimientos**: Evalúa tono positivo/negativo/neutral
+    
+    ### **Tecnologías Utilizadas:**
+    
+    - **TextBlob**: Para análisis de sentimientos (si está disponible)
+    - **spaCy**: Para análisis NLP avanzado (si está disponible)
+    - **Regex Avanzado**: Para detección de patrones específicos
+    - **Análisis Contextual**: Algoritmos propios para contexto
+    
+    ## 📊 **INTERPRETANDO LOS RESULTADOS**
+    
+    ### **🎯 Métricas Principales:**
+    
+    | 📊 Métrica | 📝 Significado |
+    |------------|----------------|
+    | **Total Mensajes** | Cantidad total de mensajes analizados |
+    | **Detectados** | Mensajes que superaron el umbral de riesgo |
+    | **Porcentaje** | % de mensajes problemáticos |
+    | **Riesgo Promedio** | Puntuación promedio de riesgo (0.0 - 1.0) |
+    
+    ### **🚦 Niveles de Riesgo:**
+    
+    - 🟢 **0.0 - 0.4**: Riesgo bajo o nulo
+    - 🟡 **0.4 - 0.6**: Riesgo moderado, revisar contexto
+    - 🔴 **0.6 - 1.0**: Riesgo alto, requiere atención
+    
+    ### **📋 Sección de Evidencias:**
+    
+    Cada evidencia muestra:
+    - **👤 Remitente**: Quién envió el mensaje
+    - **📅 Fecha/Hora**: Cuándo se envió
+    - **💬 Mensaje**: Contenido completo
+    - **⚖️ Puntuación**: Nivel de riesgo calculado
+    - **🎯 Términos**: Palabras específicas detectadas
+    - **🧠 Explicación**: Por qué se detectó (sentimiento, contexto, etc.)
     
     ## ⚖️ **CONSIDERACIONES LEGALES Y ÉTICAS**
     
@@ -877,25 +1133,66 @@ def show_instructions():
     - 🤖 **IA no es 100% precisa**: Siempre revisar resultados manualmente
     - 📝 **Falsos positivos posibles**: Especialmente con sarcasmo o bromas
     - 🌍 **Optimizado para español**: Otros idiomas pueden dar resultados imprecisos
+    - 📊 **Requiere volumen**: Pocos mensajes pueden dar análisis limitado
+    
+    ## 🚨 **SOLUCIÓN DE PROBLEMAS**
+    
+    ### **❌ "No se pudieron extraer mensajes"**
+    - Verifica que el archivo sea una exportación de WhatsApp
+    - Asegúrate de exportar "sin archivos multimedia"
+    - El archivo debe estar en formato .txt
+    
+    ### **⚠️ "Error al cargar diccionario"**
+    - Verifica que el CSV tenga las columnas: `termino,categoria`
+    - Usa categorías válidas (ver formato arriba)
+    - Asegúrate de que el archivo esté en UTF-8
+    
+    ### **🐌 "El análisis es muy lento"**
+    - Chats muy largos (>5000 mensajes) pueden tardar varios minutos
+    - Considera dividir el chat en períodos más pequeños
+    - Usar sensibilidad "baja" es más rápido
+    
+    ### **📊 "Muchos falsos positivos"**
+    - Reduce la sensibilidad a "baja"
+    - Aumenta el umbral personalizado (ej: 0.75)
+    - Revisa manualmente los resultados
+    
+    ## ✅ **RESUMEN RÁPIDO**
+    
+    1. **📤 Exporta** chat de WhatsApp (sin multimedia)
+    2. **🎯 Selecciona** tipo de detección
+    3. **⚙️ Configura** sensibilidad
+    4. **📁 Sube** archivo .txt
+    5. **🔄 Analiza** y espera resultados
+    6. **📊 Revisa** evidencias y gráficos
+    7. **💾 Descarga** reportes si necesario
+    
+    **¡Listo para comenzar el análisis!** 🚀
     """)
 
 def main():
     # Header principal
     st.markdown("""
     <div class="main-header">
-        <h1>🧠 Analizador WhatsApp con IA (NLP)</h1>
-        <p>Sistema inteligente para detección de patrones de comportamiento en chats</p>
-        <small>Versión 4.0 - Con Procesamiento de Lenguaje Natural</small>
+        <h1>🔍 Analizador WhatsApp Inteligente</h1>
+        <p>Sistema avanzado para detección de patrones de comportamiento en chats</p>
+        <small>Versión 4.5 - Streamlit Cloud Optimized</small>
     </div>
     """, unsafe_allow_html=True)
     
-    # Verificar disponibilidad de NLP
-    if not NLP_AVAILABLE:
-        st.warning("⚠️ **NLP en modo básico** - Funcionalidad limitada pero operativa")
-    elif not nlp:
-        st.warning("⚠️ **Modelo de español no encontrado** - Usando análisis básico")
-    else:
-        st.success("✅ **Análisis NLP Completo Disponible**")
+    # Mostrar estado de las herramientas
+    col1, col2 = st.columns(2)
+    with col1:
+        if SPACY_AVAILABLE:
+            st.success("✅ **Análisis NLP Completo** (spaCy + análisis avanzado)")
+        else:
+            st.info("ℹ️ **Análisis Inteligente** (sin spaCy, pero completamente funcional)")
+    
+    with col2:
+        if TEXTBLOB_AVAILABLE:
+            st.success("✅ **Análisis de Sentimientos** (TextBlob integrado)")
+        else:
+            st.info("ℹ️ **Análisis Básico de Sentimientos** (algoritmo propio)")
     
     # Crear tabs principales
     tab1, tab2, tab3 = st.tabs(["🔍 Análisis", "📖 Instructivo", "📁 Formato CSV"])
@@ -918,10 +1215,26 @@ def main():
                 help="Selecciona qué patrón quieres detectar"
             )
             
+            # Mostrar información del tipo seleccionado
+            if detection_type != "Diccionario Personalizado":
+                info_dict = {
+                    "Acoso Sexual": "🚨 Detecta insinuaciones inapropiadas, propuestas sexuales, acoso laboral",
+                    "CyberBullying": "😠 Identifica insultos, amenazas, intimidación, exclusión social", 
+                    "Infidelidades": "💔 Encuentra expresiones románticas ocultas, citas secretas, engaños"
+                }
+                st.info(info_dict[detection_type])
+            
             # Diccionario personalizado o predefinido
             dictionary = None
             if detection_type == "Diccionario Personalizado":
                 st.subheader("📁 Subir Diccionario CSV")
+                
+                with st.expander("📋 Ver formato requerido"):
+                    st.code("""termino,categoria
+sexy,palabras_alta
+atractiva,palabras_media
+solos,frases_contexto
+jefe,contexto_laboral""")
                 
                 uploaded_dict = st.file_uploader(
                     "Selecciona archivo CSV",
@@ -959,6 +1272,14 @@ def main():
                 help="Baja: Menos falsos positivos | Alta: Detecta más casos"
             )
             
+            # Explicación de sensibilidad
+            sensitivity_info = {
+                'baja': "🟢 Conservador - Solo casos evidentes (umbral: 0.75)",
+                'media': "🟡 Balanceado - Precisión óptima (umbral: 0.60)", 
+                'alta': "🔴 Agresivo - Detecta casos sutiles (umbral: 0.45)"
+            }
+            st.info(sensitivity_info[sensitivity])
+            
             custom_threshold = st.slider(
                 "🎯 Umbral Personalizado",
                 min_value=0.0,
@@ -975,21 +1296,41 @@ def main():
             # Configuraciones adicionales
             st.subheader("🔧 Opciones Avanzadas")
             
-            use_nlp = st.checkbox(
-                "🧠 Usar Análisis NLP", 
-                value=True and NLP_AVAILABLE and nlp,
-                disabled=not (NLP_AVAILABLE and nlp),
-                help="Análisis inteligente con IA (más preciso pero más lento)"
-            )
-            
             show_explanations = st.checkbox(
                 "📝 Mostrar Explicaciones Detalladas",
                 value=True,
                 help="Incluye explicaciones de por qué se detectó cada caso"
             )
+            
+            max_results = st.selectbox(
+                "📊 Máximo de Evidencias a Mostrar",
+                [10, 20, 50, 100, "Todas"],
+                index=1,
+                help="Limita resultados para mejor rendimiento"
+            )
         
         # Main content area
         st.header("📤 Subir Archivo de Chat")
+        
+        # Instrucciones rápidas
+        with st.expander("🔧 ¿Cómo exportar chat de WhatsApp?"):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("""
+                **📱 Android:**
+                1. Abre el chat en WhatsApp
+                2. Toca ⋮ → Más → Exportar chat
+                3. Selecciona "Sin archivos multimedia"
+                4. Guarda el archivo .txt
+                """)
+            with col2:
+                st.markdown("""
+                **📱 iPhone:**
+                1. Abre el chat en WhatsApp
+                2. Toca el nombre del contacto
+                3. Exportar chat → Sin archivos multimedia
+                4. Guarda el archivo .txt
+                """)
         
         uploaded_file = st.file_uploader(
             "📁 Selecciona el archivo de chat (.txt)",
@@ -1010,16 +1351,39 @@ def main():
                     messages = extract_messages_from_text(content)
                 
                 if not messages:
-                    st.error("❌ No se pudieron extraer mensajes del archivo. Verifica que sea una exportación válida de WhatsApp.")
+                    st.error("""
+                    ❌ **No se pudieron extraer mensajes del archivo.**
+                    
+                    **Posibles causas:**
+                    - El archivo no es una exportación válida de WhatsApp
+                    - Formato de fecha no reconocido
+                    - Archivo corrupto o modificado
+                    
+                    **Solución:**
+                    - Verifica que sea un archivo .txt exportado directamente de WhatsApp
+                    - Asegúrate de seleccionar "Sin archivos multimedia" al exportar
+                    """)
                     st.stop()
                 
                 st.success(f"✅ **{len(messages)} mensajes extraídos correctamente**")
                 
+                # Mostrar muestra de mensajes
+                with st.expander(f"👀 Vista previa de mensajes (primeros 5 de {len(messages)})"):
+                    for i, (timestamp, sender, message) in enumerate(messages[:5]):
+                        st.markdown(f"""
+                        <div class="chat-message">
+                            <strong>📅 {timestamp}</strong> | <strong>👤 {sender}</strong><br>
+                            💬 {message[:100]}{'...' if len(message) > 100 else ''}
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                # Configurar análisis
                 config = setup_sensitivity(
                     sensitivity, 
                     custom_threshold if use_custom else None
                 )
                 
+                # Información del análisis
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.info(f"🎯 **Detectando:** {detection_type}")
@@ -1028,30 +1392,25 @@ def main():
                 with col3:
                     st.info(f"🎯 **Umbral:** {config['threshold']:.2f}")
                 
-                if use_nlp and NLP_AVAILABLE and nlp:
-                    st.success("🧠 **Análisis NLP Activado** - Procesamiento inteligente")
-                    analyzer = AdvancedNLPAnalyzer()
-                else:
-                    st.warning("⚡ **Análisis Básico** - Sin NLP")
-                    analyzer = AdvancedNLPAnalyzer()
+                # Inicializar analizador
+                analyzer = SmartTextAnalyzer()
                 
                 # Procesar mensajes
-                with st.spinner(f"🔄 Analizando {len(messages)} mensajes con IA..."):
+                with st.spinner(f"🔄 Analizando {len(messages)} mensajes..."):
                     results = []
                     progress_bar = st.progress(0)
+                    status_placeholder = st.empty()
                     
                     for i, (timestamp, sender, message) in enumerate(messages):
+                        # Actualizar progreso
                         progress = (i + 1) / len(messages)
                         progress_bar.progress(progress)
+                        status_placeholder.text(f"Procesando mensaje {i+1}/{len(messages)}: {sender}")
                         
-                        if use_nlp and NLP_AVAILABLE and nlp:
-                            risk, label, words, analysis_details, explanation = analyzer.analyze_message(
-                                message, sender, timestamp, config, dictionary, detection_type
-                            )
-                        else:
-                            risk, label, words, analysis_details, explanation = analyzer.basic_analyze_message(
-                                message, sender, config, dictionary
-                            )
+                        # Analizar mensaje
+                        risk, label, words, analysis_details, explanation = analyzer.analyze_message(
+                            message, sender, timestamp, config, dictionary, detection_type
+                        )
                         
                         results.append({
                             'timestamp': timestamp,
@@ -1064,7 +1423,9 @@ def main():
                         })
                     
                     progress_bar.empty()
+                    status_placeholder.empty()
                 
+                # Crear DataFrame de resultados
                 results_df = pd.DataFrame(results)
                 
                 # Mostrar estadísticas principales
@@ -1074,26 +1435,67 @@ def main():
                 detected_messages = len(results_df[results_df['label'] == 'DETECTADO'])
                 percentage = (detected_messages / total_messages) * 100 if total_messages > 0 else 0
                 avg_risk = results_df['risk_score'].mean()
+                max_risk = results_df['risk_score'].max()
                 
-                col1, col2, col3, col4 = st.columns(4)
+                # Métricas principales
+                col1, col2, col3, col4, col5 = st.columns(5)
                 
                 with col1:
                     st.metric("📝 Total Mensajes", total_messages)
                 
                 with col2:
-                    st.metric("🚨 Detectados", detected_messages)
+                    st.metric(
+                        "🚨 Detectados", 
+                        detected_messages,
+                        delta=f"{percentage:.1f}%" if percentage > 0 else None
+                    )
                 
                 with col3:
+                    # Color según porcentaje
                     color = "🟢" if percentage < 5 else "🟡" if percentage < 15 else "🔴"
                     st.metric(f"{color} Porcentaje", f"{percentage:.2f}%")
                 
                 with col4:
                     st.metric("⚖️ Riesgo Promedio", f"{avg_risk:.3f}")
                 
+                with col5:
+                    st.metric("📊 Riesgo Máximo", f"{max_risk:.3f}")
+                
+                # Evaluación del riesgo general
+                if percentage == 0:
+                    st.success("✅ **Excelente**: No se detectaron patrones problemáticos")
+                elif percentage < 5:
+                    st.info("🟢 **Bajo Riesgo**: Pocos casos detectados, revisar manualmente")
+                elif percentage < 15:
+                    st.warning("🟡 **Riesgo Moderado**: Revisar casos detectados cuidadosamente")
+                else:
+                    st.error("🔴 **Alto Riesgo**: Múltiples detecciones, requiere atención inmediata")
+                
                 # Mostrar visualizaciones
                 if detected_messages > 0:
                     st.header("📊 Análisis Visual")
                     create_visualizations(results_df, detection_type)
+                    
+                    # Análisis por remitente
+                    st.subheader("👥 Análisis por Remitente")
+                    sender_stats = results_df.groupby('sender').agg({
+                        'risk_score': ['count', 'mean', 'max'],
+                        'label': lambda x: (x == 'DETECTADO').sum()
+                    }).round(3)
+                    
+                    sender_stats.columns = ['Total Mensajes', 'Riesgo Promedio', 'Riesgo Máximo', 'Detecciones']
+                    sender_stats = sender_stats.sort_values('Detecciones', ascending=False)
+                    
+                    st.dataframe(
+                        sender_stats,
+                        use_container_width=True,
+                        column_config={
+                            "Total Mensajes": st.column_config.NumberColumn("📝 Total"),
+                            "Riesgo Promedio": st.column_config.NumberColumn("⚖️ Promedio", format="%.3f"),
+                            "Riesgo Máximo": st.column_config.NumberColumn("📊 Máximo", format="%.3f"),
+                            "Detecciones": st.column_config.NumberColumn("🚨 Detectados")
+                        }
+                    )
                     
                     # Mostrar evidencias
                     st.header("🔍 Evidencias Encontradas")
@@ -1101,70 +1503,241 @@ def main():
                     detected_df = results_df[results_df['label'] == 'DETECTADO'].copy()
                     detected_df = detected_df.sort_values('risk_score', ascending=False)
                     
-                    for idx, row in detected_df.head(20).iterrows():
-                        risk_level = "high" if row['risk_score'] > 0.8 else "medium" if row['risk_score'] > 0.6 else "low"
+                    # Filtros
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        sender_filter = st.multiselect(
+                            "👤 Filtrar por remitente:",
+                            options=detected_df['sender'].unique(),
+                            default=detected_df['sender'].unique()
+                        )
+                    
+                    with col2:
+                        risk_threshold = st.slider(
+                            "⚖️ Riesgo mínimo:",
+                            min_value=0.0,
+                            max_value=1.0,
+                            value=config['threshold'],
+                            step=0.05
+                        )
+                    
+                    with col3:
+                        word_filter = st.text_input(
+                            "🔍 Buscar palabra:",
+                            placeholder="Ej: sexy, amor...",
+                            help="Busca mensajes que contengan esta palabra"
+                        )
+                    
+                    # Aplicar filtros
+                    filtered_df = detected_df[
+                        (detected_df['sender'].isin(sender_filter)) &
+                        (detected_df['risk_score'] >= risk_threshold)
+                    ]
+                    
+                    if word_filter:
+                        filtered_df = filtered_df[
+                            filtered_df['message'].str.contains(word_filter, case=False, na=False) |
+                            filtered_df['detected_words'].str.contains(word_filter, case=False, na=False)
+                        ]
+                    
+                    # Limitar resultados
+                    if max_results != "Todas":
+                        filtered_df = filtered_df.head(max_results)
+                    
+                    st.info(f"📊 Mostrando {len(filtered_df)} evidencias de {len(detected_df)} total")
+                    
+                    # Mostrar evidencias
+                    for idx, row in filtered_df.iterrows():
+                        # Determinar nivel de riesgo para el color
+                        if row['risk_score'] > 0.8:
+                            risk_class = "high"
+                            risk_emoji = "🔴"
+                            risk_text = "ALTO"
+                        elif row['risk_score'] > 0.6:
+                            risk_class = "medium" 
+                            risk_emoji = "🟡"
+                            risk_text = "MEDIO"
+                        else:
+                            risk_class = "low"
+                            risk_emoji = "🟢"
+                            risk_text = "BAJO"
+                        
+                        # Badge del tipo de detección
+                        badge_class = {
+                            "Acoso Sexual": "badge-acoso",
+                            "CyberBullying": "badge-bullying", 
+                            "Infidelidades": "badge-infidelidad"
+                        }.get(detection_type, "badge-acoso")
                         
                         with st.container():
                             st.markdown(f"""
-                            <div class="evidence-card risk-{risk_level}">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                    <strong>👤 {row['sender']}</strong>
-                                    <span style="color: #666;">📅 {row['timestamp']}</span>
+                            <div class="evidence-card risk-{risk_class}">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div>
+                                        <strong style="font-size: 1.1em;">👤 {row['sender']}</strong>
+                                        <span class="detection-badge {badge_class}">{detection_type}</span>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span style="color: #666; font-size: 0.9em;">📅 {row['timestamp']}</span><br>
+                                        <span style="font-weight: bold; color: {'#dc3545' if risk_class=='high' else '#ffc107' if risk_class=='medium' else '#28a745'};">
+                                            {risk_emoji} RIESGO {risk_text}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
-                                    💬 {row['message']}
+                                
+                                <div class="chat-message" style="margin: 15px 0;">
+                                    💬 <em>"{row['message']}"</em>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span><strong>⚖️ Riesgo:</strong> {row['risk_score']:.3f}</span>
-                                    <span><strong>🎯 Términos:</strong> {row['detected_words'] if row['detected_words'] else 'N/A'}</span>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                    <div>
+                                        <strong>⚖️ Puntuación de Riesgo:</strong><br>
+                                        <span style="font-size: 1.2em; font-weight: bold; color: {'#dc3545' if risk_class=='high' else '#ffc107' if risk_class=='medium' else '#28a745'};">
+                                            {row['risk_score']:.3f}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <strong>🎯 Términos Detectados:</strong><br>
+                                        <span style="color: #e74c3c; font-weight: bold;">
+                                            {row['detected_words'] if row['detected_words'] else 'N/A'}
+                                        </span>
+                                    </div>
                                 </div>
-                                {f"<div style='margin-top: 10px; font-style: italic;'><strong>🧠 Análisis:</strong> {row['explanation']}</div>" if show_explanations and row['explanation'] else ''}
+                                
+                                {f'''
+                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                                    <strong>🧠 Análisis Detallado:</strong><br>
+                                    <span style="color: #555; font-style: italic;">{row['explanation']}</span>
+                                </div>
+                                ''' if show_explanations and row['explanation'] else ''}
                             </div>
                             """, unsafe_allow_html=True)
                     
+                    if len(filtered_df) == 0:
+                        st.info("🔍 No se encontraron evidencias con los filtros actuales")
+                        
                 else:
                     st.success("✅ **¡Excelente noticia!** No se detectaron patrones sospechosos en la conversación")
+                    
+                    # Mostrar algunas estadísticas básicas aunque no haya detecciones
+                    st.subheader("📊 Estadísticas Generales")
+                    
+                    # Distribución de remitentes
+                    sender_counts = results_df['sender'].value_counts()
+                    if len(sender_counts) > 1:
+                        fig_senders = px.bar(
+                            x=sender_counts.index,
+                            y=sender_counts.values,
+                            title="📱 Mensajes por Remitente",
+                            labels={'x': 'Remitente', 'y': 'Cantidad de Mensajes'},
+                            color_discrete_sequence=['#667eea']
+                        )
+                        fig_senders.update_layout(
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                        )
+                        st.plotly_chart(fig_senders, use_container_width=True)
                 
-                # Opción de descarga
+                # Opción de descarga de resultados
                 st.header("💾 Descargar Resultados")
                 
-                col1, col2 = st.columns(2)
+                col1, col2, col3 = st.columns(3)
                 
                 with col1:
+                    # CSV completo
                     csv_buffer = io.StringIO()
                     results_df.to_csv(csv_buffer, index=False, encoding='utf-8')
                     csv_data = csv_buffer.getvalue()
                     
+                    filename = f"analisis_completo_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                    
                     st.download_button(
-                        label="📄 Descargar CSV Completo",
+                        label="📄 Descargar Análisis Completo (CSV)",
                         data=csv_data,
-                        file_name=f"analisis_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                        mime="text/csv"
+                        file_name=filename,
+                        mime="text/csv",
+                        help="Incluye todos los mensajes analizados"
                     )
                 
                 with col2:
+                    # Solo detecciones
                     if detected_messages > 0:
                         detected_csv = io.StringIO()
                         detected_df.to_csv(detected_csv, index=False, encoding='utf-8')
                         detected_data = detected_csv.getvalue()
                         
+                        filename_detected = f"solo_detecciones_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                        
                         st.download_button(
-                            label="🚨 Descargar Solo Detecciones",
+                            label="🚨 Descargar Solo Detecciones (CSV)",
                             data=detected_data,
-                            file_name=f"detecciones_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                            mime="text/csv"
+                            file_name=filename_detected,
+                            mime="text/csv",
+                            help="Solo mensajes detectados como problemáticos"
                         )
+                    else:
+                        st.info("📊 No hay detecciones para descargar")
+                
+                with col3:
+                    # Reporte resumen
+                    report_data = f"""REPORTE DE ANÁLISIS - {detection_type.upper()}
+=====================================
+Fecha de análisis: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Archivo analizado: {uploaded_file.name}
+Tipo de detección: {detection_type}
+Sensibilidad: {sensitivity}
+Umbral usado: {config['threshold']:.3f}
+
+ESTADÍSTICAS GENERALES:
+- Total de mensajes: {total_messages}
+- Mensajes detectados: {detected_messages}
+- Porcentaje de detección: {percentage:.2f}%
+- Riesgo promedio: {avg_risk:.4f}
+- Riesgo máximo: {max_risk:.4f}
+
+ANÁLISIS POR REMITENTE:
+{sender_stats.to_string() if detected_messages > 0 else 'No hay detecciones'}
+
+TECNOLOGÍAS USADAS:
+- spaCy: {'Disponible' if SPACY_AVAILABLE else 'No disponible'}
+- TextBlob: {'Disponible' if TEXTBLOB_AVAILABLE else 'No disponible'}
+- Análisis inteligente: Activado
+- Detección de patrones: Activada
+
+Este reporte fue generado automáticamente por WhatsApp Analyzer v4.5
+"""
+                    
+                    filename_report = f"reporte_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    
+                    st.download_button(
+                        label="📋 Descargar Reporte Resumen (TXT)",
+                        data=report_data,
+                        file_name=filename_report,
+                        mime="text/plain",
+                        help="Reporte ejecutivo con estadísticas principales"
+                    )
             
             except Exception as e:
-                st.error(f"❌ Error al procesar el archivo: {str(e)}")
-                st.info("💡 Verifica que el archivo sea una exportación válida de WhatsApp")
+                st.error(f"❌ **Error al procesar el archivo:**\n\n{str(e)}")
+                st.info("""
+                💡 **Posibles soluciones:**
+                - Verifica que el archivo sea una exportación válida de WhatsApp
+                - Asegúrate de que el archivo no esté corrupto
+                - Intenta con un chat más pequeño para probar
+                - Verifica que el archivo tenga la codificación correcta (UTF-8)
+                """)
     
-    # Footer
+    # Footer con información importante
     st.markdown("---")
     st.markdown("""
-    <div style="text-align: center; color: #666; padding: 20px;">
-        <p>🔒 <strong>Privacidad:</strong> Todos los archivos se procesan localmente. No se almacenan datos.</p>
-        <p>⚖️ <strong>Uso Responsable:</strong> Esta herramienta debe usarse únicamente con fines legítimos y respetando la privacidad.</p>
+    <div style="text-align: center; color: #666; padding: 20px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-radius: 10px; margin-top: 2rem;">
+        <h4>🔒 Privacidad y Seguridad</h4>
+        <p><strong>✅ Procesamiento 100% Local:</strong> Todos los archivos se procesan en tu navegador. No se envían datos a servidores externos.</p>
+        <p><strong>🗑️ Sin Almacenamiento:</strong> No guardamos ninguna conversación ni archivo. Todo se elimina al cerrar la aplicación.</p>
+        <p><strong>⚖️ Uso Responsable:</strong> Esta herramienta debe usarse únicamente con fines legítimos y respetando la privacidad y leyes locales.</p>
+        <p><strong>🔬 Herramienta de Apoyo:</strong> Los resultados requieren validación manual y no constituyen evidencia legal definitiva.</p>
+        <small><em>WhatsApp Analyzer v4.5 - Optimizado para Streamlit Cloud</em></small>
     </div>
     """, unsafe_allow_html=True)
 
