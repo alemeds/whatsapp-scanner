@@ -23,6 +23,27 @@ import plotly.express as px
 import plotly.graph_objects as go
 from collections import Counter, defaultdict
 import hashlib
+import subprocess
+import sys
+
+def install_and_download_requirements():
+    """Instala y descarga modelos necesarios para Streamlit Cloud"""
+    try:
+        import spacy
+        nlp = spacy.load("es_core_news_sm")
+        return True, nlp
+    except (ImportError, OSError):
+        try:
+            # Intentar descargar el modelo si spaCy está instalado pero no el modelo
+            subprocess.check_call([sys.executable, "-m", "spacy", "download", "es_core_news_sm"])
+            import spacy
+            nlp = spacy.load("es_core_news_sm")
+            return True, nlp
+        except:
+            return False, None
+
+# Verificar disponibilidad de NLP
+NLP_AVAILABLE, nlp = install_and_download_requirements()
 
 # NLP Libraries
 try:
