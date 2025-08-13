@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-ANALIZADOR AVANZADO DE CONVERSACIONES DE WHATSAPP
-Aplicación web para detectar diferentes tipos de delitos y comportamientos en chats
-Versión optimizada para Streamlit Cloud sin dependencias problemáticas
+ANALIZADOR AVANZADO DE CONVERSACIONES DE WHATSAPP - VERSIÓN MEJORADA 5.0
+Aplicación web optimizada con mejores visualizaciones y análisis inteligente
 
 Autor: Sistema de Análisis de Comunicaciones
-Versión: 4.5 - Streamlit Cloud Stable Edition
+Versión: 5.0 - Enhanced Edition con mejoras de performance y UI
 """
 
 import streamlit as st
@@ -16,11 +15,18 @@ import re
 import csv
 import io
 import os
+import logging
+import hashlib
 from datetime import datetime, timedelta
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from collections import Counter, defaultdict
-import hashlib
+import time
+
+# Configuración de logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Verificación segura de dependencias NLP
 @st.cache_resource
@@ -30,37 +36,31 @@ def check_nlp_dependencies():
     textblob_available = False
     nlp_model = None
     
-    # Verificar TextBlob (más ligero y confiable)
     try:
         from textblob import TextBlob
-        # Crear un test simple
         test_blob = TextBlob("test text")
         _ = test_blob.sentiment.polarity
         textblob_available = True
     except Exception:
         textblob_available = False
     
-    # Verificar spaCy solo si está disponible (sin forzar instalación)
     try:
         import spacy
         try:
             nlp_model = spacy.load("es_core_news_sm")
             spacy_available = True
         except OSError:
-            # Modelo no disponible, usar análisis básico
             spacy_available = False
     except ImportError:
-        # spaCy no instalado, continuar sin él
         spacy_available = False
     
     return spacy_available, textblob_available, nlp_model
 
-# Inicializar verificación de dependencias
 SPACY_AVAILABLE, TEXTBLOB_AVAILABLE, nlp = check_nlp_dependencies()
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Analizador WhatsApp - Detector de Patrones",
+    page_title="WhatsApp Analyzer 5.0 - Enhanced",
     page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -78,6 +78,7 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     }
+    
     .metric-card {
         background: linear-gradient(145deg, #f8f9fa, #e9ecef);
         padding: 1.5rem;
@@ -86,81 +87,124 @@ st.markdown("""
         margin: 0.5rem 0;
         box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.2);
     }
-    .evidence-card {
-        background: #fff;
-        border: 1px solid #e9ecef;
+    
+    .alert-critical {
+        background: linear-gradient(145deg, #fee, #fdd);
+        border-left: 6px solid #dc3545;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    
+    .alert-warning {
+        background: linear-gradient(145deg, #fffbf0, #fff4d6);
+        border-left: 6px solid #ffc107;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    
+    .alert-info {
+        background: linear-gradient(145deg, #f0f8ff, #e6f3ff);
+        border-left: 6px solid #17a2b8;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    
+    .detection-table {
+        border: 1px solid #dee2e6;
         border-radius: 12px;
-        padding: 1.5rem;
+        overflow: hidden;
         margin: 1rem 0;
         box-shadow: 0 4px 15px 0 rgba(0,0,0,0.1);
-        transition: transform 0.2s;
     }
-    .evidence-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px 0 rgba(0,0,0,0.15);
-    }
-    .risk-high { 
-        border-left: 6px solid #dc3545; 
-        background: linear-gradient(145deg, #fff5f5, #ffe6e6);
-    }
-    .risk-medium { 
-        border-left: 6px solid #ffc107; 
-        background: linear-gradient(145deg, #fffbf0, #fff4d6);
-    }
-    .risk-low { 
-        border-left: 6px solid #28a745; 
-        background: linear-gradient(145deg, #f8fff8, #e6ffe6);
-    }
-    .chat-message {
-        background: #f1f3f4;
-        border-radius: 10px;
+    
+    .detection-row {
+        border-bottom: 1px solid #eee;
         padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 3px solid #667eea;
+        transition: background-color 0.2s;
     }
-    .detection-badge {
-        display: inline-block;
+    
+    .detection-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .risk-badge-high {
+        background: #dc3545;
+        color: white;
         padding: 0.25rem 0.75rem;
         border-radius: 15px;
         font-size: 0.875rem;
         font-weight: bold;
-        margin: 0.25rem;
     }
-    .badge-acoso { background: #ffeaa7; color: #d63031; }
-    .badge-bullying { background: #fab1a0; color: #e17055; }
-    .badge-infidelidad { background: #fd79a8; color: #e84393; }
+    
+    .risk-badge-medium {
+        background: #ffc107;
+        color: #212529;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.875rem;
+        font-weight: bold;
+    }
+    
+    .risk-badge-low {
+        background: #28a745;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.875rem;
+        font-weight: bold;
+    }
+    
+    .progress-container {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .filter-section {
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        border: 1px solid #dee2e6;
+    }
+    
+    .recommendation-box {
+        background: linear-gradient(145deg, #e8f5e8, #d4edda);
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 class SmartTextAnalyzer:
-    """Analizador de texto inteligente optimizado para Streamlit Cloud"""
+    """Analizador de texto inteligente optimizado - Versión 5.0"""
     
     def __init__(self):
         self.spacy_available = SPACY_AVAILABLE
         self.textblob_available = TEXTBLOB_AVAILABLE
         self.nlp = nlp
         
-        # Patrones de negación
+        # Patrones mejorados
         self.negation_patterns = ["no", "nunca", "jamás", "nada", "tampoco", "ni", "sin"]
-        
-        # Intensificadores
         self.intensity_modifiers = {
             "muy": 1.5, "super": 1.7, "extremadamente": 2.0, "bastante": 1.3,
             "algo": 0.7, "poco": 0.5, "medio": 0.8, "un poco": 0.6,
             "mucho": 1.4, "demasiado": 1.6, "increíblemente": 1.8
         }
-        
-        # Emociones básicas
         self.positive_emotions = ["amor", "cariño", "besos", "abrazos", "feliz", "contento", "alegre", "genial"]
         self.negative_emotions = ["odio", "rabia", "ira", "triste", "deprimido", "enojado", "furioso", "disgusto"]
-        
+    
     def analyze_message(self, text, sender, timestamp, config, dictionary, detection_type):
-        """Análisis principal del mensaje con fallback inteligente"""
+        """Análisis principal del mensaje con mejoras de performance"""
         
-        # Preprocesamiento básico
         cleaned_text = self.preprocess_text(text)
         
-        # Análisis multidimensional
         analysis_results = {
             'sentiment': self.analyze_sentiment(text),
             'negation': self.detect_negation_simple(cleaned_text),
@@ -171,18 +215,13 @@ class SmartTextAnalyzer:
             'patterns': self.detect_behavioral_patterns(cleaned_text, detection_type)
         }
         
-        # Si spaCy está disponible, usar análisis avanzado
         if self.spacy_available and self.nlp:
             analysis_results.update(self.advanced_spacy_analysis(cleaned_text))
         
-        # Calcular puntuación inteligente
         base_score = self.calculate_base_score(cleaned_text, dictionary)
         smart_score = self.calculate_contextual_score(base_score, analysis_results, detection_type)
         
-        # Palabras detectadas
         detected_words = self.get_detected_words(text, dictionary)
-        
-        # Explicación detallada
         explanation = self.generate_comprehensive_explanation(analysis_results, smart_score, detection_type)
         
         label = "DETECTADO" if smart_score > config['threshold'] else "NO DETECTADO"
@@ -193,7 +232,6 @@ class SmartTextAnalyzer:
         """Preprocesamiento inteligente del texto"""
         text = text.lower()
         
-        # Normalizar emojis emocionales
         emoji_patterns = {
             r'[😍😘❤️💕💖😻🥰💘]': ' _expresion_amor_ ',
             r'[😠😡🤬👿💢😤]': ' _expresion_rabia_ ',
@@ -205,10 +243,8 @@ class SmartTextAnalyzer:
         for pattern, replacement in emoji_patterns.items():
             text = re.sub(pattern, replacement, text)
         
-        # Normalizar repeticiones: "hoooola" -> "hola"
         text = re.sub(r'(.)\1{3,}', r'\1\1', text)
         
-        # Normalizar variaciones de escritura comunes
         replacements = {
             r's[3e]xy': 'sexy', r'k[1i]ero': 'quiero', r'h3rm0sa': 'hermosa',
             r'b[3e]ll[4a]': 'bella', r'amor3s': 'amores', r'\bb+b+\b': 'bebe',
@@ -221,7 +257,7 @@ class SmartTextAnalyzer:
         return text
     
     def analyze_sentiment(self, text):
-        """Análisis de sentimientos con TextBlob o fallback básico"""
+        """Análisis de sentimientos mejorado"""
         if self.textblob_available:
             try:
                 from textblob import TextBlob
@@ -246,7 +282,6 @@ class SmartTextAnalyzer:
             except Exception:
                 pass
         
-        # Fallback: análisis básico de sentimientos
         return self.basic_sentiment_analysis(text)
     
     def basic_sentiment_analysis(self, text):
@@ -283,10 +318,7 @@ class SmartTextAnalyzer:
         
         for i, word in enumerate(words):
             if word in self.negation_patterns:
-                # Buscar contexto (siguientes 3 palabras)
                 context = words[i+1:i+4] if i+1 < len(words) else []
-                
-                # Calcular fuerza de la negación
                 strength = 1.0 if word in ["nunca", "jamás", "nada"] else 0.8
                 
                 negations.append({
@@ -303,19 +335,16 @@ class SmartTextAnalyzer:
         intensity_score = 1.0
         indicators = []
         
-        # Intensificadores en el texto
         for word, multiplier in self.intensity_modifiers.items():
             if word in cleaned_text:
                 intensity_score *= multiplier
                 indicators.append(f"{word} ({multiplier}x)")
         
-        # MAYÚSCULAS (indica énfasis)
         caps_ratio = sum(1 for c in original_text if c.isupper()) / max(len(original_text), 1)
         if caps_ratio > 0.3:
             intensity_score *= 1.4
             indicators.append(f"MAYÚSCULAS ({caps_ratio:.0%})")
         
-        # Signos de puntuación enfáticos
         exclamations = original_text.count('!')
         questions = original_text.count('?')
         
@@ -328,7 +357,6 @@ class SmartTextAnalyzer:
             intensity_score *= 1.2
             indicators.append(f"?×{questions}")
         
-        # Repetición de letras (holaaa, siiii)
         repetition_pattern = r'(.)\1{2,}'
         if re.search(repetition_pattern, original_text):
             intensity_score *= 1.2
@@ -344,7 +372,6 @@ class SmartTextAnalyzer:
         positive_count = sum(1 for word in self.positive_emotions if word in text)
         negative_count = sum(1 for word in self.negative_emotions if word in text)
         
-        # Detectar emociones específicas por expresiones
         emotion_expressions = {
             '_expresion_amor_': 'romántico',
             '_expresion_rabia_': 'agresivo',
@@ -372,7 +399,6 @@ class SmartTextAnalyzer:
             'sexual': 0, 'social': 0, 'temporal': 0
         }
         
-        # Términos por contexto
         context_terms = {
             'laboral': ['jefe', 'trabajo', 'oficina', 'reunión', 'proyecto', 'empresa', 'ascenso', 'salario'],
             'romántico': ['amor', 'cariño', 'besos', 'pareja', 'novio', 'novia', 'cita', 'te amo'],
@@ -383,10 +409,8 @@ class SmartTextAnalyzer:
             'temporal': ['noche', 'madrugada', 'tarde', 'mañana', 'después', 'luego', 'pronto']
         }
         
-        # Calcular scores de contexto
         for context_type, terms in context_terms.items():
             matches = sum(1 for term in terms if term in text)
-            # Normalizar por número esperado de términos
             max_expected = 3
             context_analysis[context_type] = min(matches / max_expected, 1.0)
         
@@ -395,12 +419,10 @@ class SmartTextAnalyzer:
     def analyze_temporal_patterns(self, timestamp):
         """Análisis de patrones temporales"""
         try:
-            # Extraer hora del timestamp
             hour_match = re.search(r'(\d{1,2}):(\d{2})', timestamp)
             if hour_match:
                 hour = int(hour_match.group(1))
                 
-                # Determinar período del día
                 if 6 <= hour <= 12:
                     period = "mañana"
                 elif 12 <= hour <= 18:
@@ -465,14 +487,12 @@ class SmartTextAnalyzer:
         try:
             doc = self.nlp(text)
             
-            # Análisis de entidades
             entities = {
                 'persons': [ent.text for ent in doc.ents if ent.label_ in ["PER", "PERSON"]],
                 'locations': [ent.text for ent in doc.ents if ent.label_ in ["LOC", "GPE"]],
                 'organizations': [ent.text for ent in doc.ents if ent.label_ == "ORG"]
             }
             
-            # Análisis gramatical
             pos_tags = [token.pos_ for token in doc]
             verb_count = pos_tags.count('VERB')
             noun_count = pos_tags.count('NOUN')
@@ -504,7 +524,6 @@ class SmartTextAnalyzer:
         if total_terms == 0:
             return 0
         
-        # Puntuación ponderada
         score = ((high_matches * 0.8) + 
                 (medium_matches * 0.4) + 
                 (context_matches * 0.3) + 
@@ -516,17 +535,14 @@ class SmartTextAnalyzer:
         """Calcula puntuación final considerando contexto"""
         score = base_score
         
-        # Ajustar por negaciones
         negations = analysis['negation']
         for negation in negations:
             reduction = negation['strength'] * 0.4
             score *= (1 - reduction)
         
-        # Ajustar por intensidad
         intensity = analysis['intensity']['score']
         score *= intensity
         
-        # Ajustar por sentimientos
         sentiment = analysis['sentiment']
         if detection_type == "Acoso Sexual":
             if sentiment['polarity'] > 0.2:
@@ -538,13 +554,12 @@ class SmartTextAnalyzer:
             if abs(sentiment['polarity']) > 0.3:
                 score *= 1.2
         
-        # Ajustar por contexto específico
         context = analysis['context']
         if detection_type == "Acoso Sexual":
             if context['laboral'] > 0.5 and context['sexual'] > 0.3:
-                score *= 1.8  # Acoso laboral es muy grave
+                score *= 1.8
             elif context['romántico'] > 0.6:
-                score *= 0.7  # En contexto romántico es menos grave
+                score *= 0.7
         
         elif detection_type == "CyberBullying":
             if context['agresivo'] > 0.4:
@@ -559,7 +574,6 @@ class SmartTextAnalyzer:
             if temporal['is_night']:
                 score *= 1.2
         
-        # Bonificación por patrones específicos
         patterns = analysis['patterns']
         if patterns:
             score *= (1 + len(patterns) * 0.2)
@@ -582,49 +596,509 @@ class SmartTextAnalyzer:
         """Genera explicación detallada del análisis"""
         explanations = []
         
-        # Sentimiento
         sentiment = analysis['sentiment']
         if sentiment['confidence'] > 0.3:
             explanations.append(f"Sentimiento {sentiment['interpretation']} ({sentiment['polarity']:.2f})")
         
-        # Negaciones
         negations = analysis['negation']
         if negations:
             explanations.append(f"Negaciones: {len(negations)}")
         
-        # Intensidad
         intensity = analysis['intensity']
         if intensity['score'] > 1.3:
             explanations.append(f"Alta intensidad ({intensity['score']:.1f}x)")
         
-        # Contexto dominante
         context = analysis['context']
         max_context = max(context.items(), key=lambda x: x[1])
         if max_context[1] > 0.4:
             explanations.append(f"Contexto {max_context[0]}")
         
-        # Emociones específicas
         emotion = analysis['emotion']
         if emotion['expressions']:
             explanations.append(f"Expresiones: {', '.join(emotion['expressions'])}")
         
-        # Patrones específicos
         patterns = analysis['patterns']
         if patterns:
             explanations.append(f"Patrones detectados: {len(patterns)}")
         
-        # Información temporal
         temporal = analysis['temporal']
         if temporal['is_night']:
             explanations.append("Horario nocturno")
         
-        # Método de análisis
         method = "NLP completo" if self.spacy_available else "Análisis inteligente"
         if sentiment['method'] == 'textblob':
             method += " + TextBlob"
         
         explanation_text = " | ".join(explanations) if explanations else "Análisis básico"
         return f"{explanation_text} ({method})"
+
+# Funciones auxiliares mejoradas
+@st.cache_data(ttl=3600)
+def analyze_messages_batch(messages_hash, dictionary_hash, config_hash):
+    """Cache de análisis para evitar reprocesamiento"""
+    return None
+
+def calculate_advanced_metrics(results_df):
+    """Calcula métricas avanzadas para mejor insights"""
+    metrics = {}
+    
+    if 'timestamp' in results_df.columns and len(results_df) > 0:
+        try:
+            results_df['parsed_date'] = pd.to_datetime(results_df['timestamp'], errors='coerce', infer_datetime_format=True)
+            results_df_with_dates = results_df.dropna(subset=['parsed_date'])
+            
+            if len(results_df_with_dates) > 0:
+                results_df_with_dates['hour'] = results_df_with_dates['parsed_date'].dt.hour
+                hourly_risk = results_df_with_dates.groupby('hour')['risk_score'].mean()
+                if len(hourly_risk) > 0:
+                    metrics['peak_risk_hour'] = hourly_risk.idxmax()
+                    metrics['lowest_risk_hour'] = hourly_risk.idxmin()
+        except Exception:
+            pass
+    
+    detected_words_list = results_df[results_df['label'] == 'DETECTADO']['detected_words'].str.cat(sep=', ')
+    if detected_words_list:
+        word_freq = Counter([word.strip() for word in detected_words_list.split(',') if word.strip()])
+        metrics['top_risk_words'] = dict(word_freq.most_common(5))
+    
+    if len(results_df) > 10:
+        risk_trend = results_df['risk_score'].rolling(window=10).mean().diff().iloc[-1]
+        metrics['risk_trend'] = 'increasing' if risk_trend > 0 else 'decreasing'
+    
+    return metrics
+
+def generate_smart_alerts(results_df, detection_type):
+    """Genera alertas inteligentes basadas en patrones"""
+    alerts = []
+    
+    detected_df = results_df[results_df['label'] == 'DETECTADO']
+    
+    if len(detected_df) > 0:
+        detection_rate = len(detected_df) / len(results_df)
+        
+        if detection_rate > 0.3:
+            alerts.append({
+                'level': 'critical',
+                'message': f'⚠️ CRÍTICO: {len(detected_df)} detecciones de {len(results_df)} mensajes ({detection_rate*100:.1f}%)',
+                'type': 'high_frequency'
+            })
+        elif detection_rate > 0.15:
+            alerts.append({
+                'level': 'warning',
+                'message': f'🔔 ADVERTENCIA: {len(detected_df)} detecciones de {len(results_df)} mensajes ({detection_rate*100:.1f}%)',
+                'type': 'medium_frequency'
+            })
+        
+        sender_counts = detected_df['sender'].value_counts()
+        if len(sender_counts) > 0:
+            dominant_sender_pct = sender_counts.iloc[0] / len(detected_df) * 100
+            if dominant_sender_pct > 70:
+                alerts.append({
+                    'level': 'info',
+                    'message': f'👤 REMITENTE DOMINANTE: {sender_counts.index[0]} ({dominant_sender_pct:.1f}% de detecciones)',
+                    'type': 'sender_concentration'
+                })
+    
+    return alerts
+
+def generate_recommendations(results_df, detection_type):
+    """Genera recomendaciones específicas basadas en los resultados"""
+    recommendations = []
+    
+    detection_rate = len(results_df[results_df['label'] == 'DETECTADO']) / len(results_df) if len(results_df) > 0 else 0
+    
+    if detection_rate > 0.3:
+        recommendations.append("🚨 ALTA PRIORIDAD: Revisar inmediatamente las conversaciones detectadas")
+        recommendations.append("📞 Considerar contactar a un profesional especializado")
+    elif detection_rate > 0.1:
+        recommendations.append("⚠️ ATENCIÓN: Monitorear la situación de cerca")
+        recommendations.append("📝 Documentar evidencias adicionales")
+    else:
+        recommendations.append("✅ SITUACIÓN ESTABLE: Continuar monitoreo rutinario")
+    
+    if detection_type == "Acoso Sexual":
+        recommendations.append("🏢 Si es contexto laboral, reportar a RRHH")
+        recommendations.append("⚖️ Considerar asesoría legal si hay evidencia clara")
+    elif detection_type == "CyberBullying":
+        recommendations.append("🏫 Si involucra menores, contactar autoridades escolares")
+        recommendations.append("🛡️ Implementar medidas de protección digital")
+    elif detection_type == "Infidelidades":
+        recommendations.append("💬 Considerar terapia de pareja si es apropiado")
+        recommendations.append("🤝 Buscar mediación profesional")
+    
+    return recommendations
+
+def create_enhanced_metric_dashboard(results_df):
+    """Dashboard de métricas mejorado"""
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    total = len(results_df)
+    detected = len(results_df[results_df['label'] == 'DETECTADO'])
+    percentage = (detected / total) * 100 if total > 0 else 0
+    avg_risk = results_df['risk_score'].mean()
+    max_risk = results_df['risk_score'].max()
+    
+    with col1:
+        st.metric(
+            "📱 Total Mensajes", 
+            f"{total:,}",
+            help="Número total de mensajes analizados"
+        )
+    
+    with col2:
+        delta_color = "inverse" if detected > 0 else "normal"
+        st.metric(
+            "🎯 Detectados", 
+            f"{detected:,}",
+            delta=f"{percentage:.1f}%",
+            delta_color=delta_color,
+            help="Mensajes que superaron el umbral de detección"
+        )
+    
+    with col3:
+        if percentage > 30:
+            risk_level = "🔴 CRÍTICO"
+        elif percentage > 15:
+            risk_level = "🟡 MEDIO"
+        elif percentage > 5:
+            risk_level = "🟠 BAJO"
+        else:
+            risk_level = "🟢 MÍNIMO"
+        
+        st.metric(
+            f"{risk_level}", 
+            f"{percentage:.1f}%",
+            help="Porcentaje de detecciones sobre el total"
+        )
+    
+    with col4:
+        st.metric(
+            "⚖️ Riesgo Promedio", 
+            f"{avg_risk:.3f}",
+            help="Puntuación promedio de riesgo (0.0 - 1.0)"
+        )
+    
+    with col5:
+        st.metric(
+            "📊 Riesgo Máximo", 
+            f"{max_risk:.3f}",
+            help="Puntuación más alta encontrada"
+        )
+
+def create_advanced_filters():
+    """Filtros avanzados para los resultados"""
+    with st.expander("🔍 **Filtros Avanzados**", expanded=False):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.subheader("👥 Remitentes")
+            sender_filter = st.multiselect(
+                "Seleccionar remitentes:",
+                options=[],  # Se llenará dinámicamente
+                help="Filtrar por remitentes específicos"
+            )
+        
+        with col2:
+            st.subheader("⚖️ Nivel de Riesgo")
+            risk_range = st.slider(
+                "Rango de riesgo:",
+                min_value=0.0,
+                max_value=1.0,
+                value=(0.0, 1.0),
+                step=0.05,
+                help="Filtrar por puntuación de riesgo"
+            )
+        
+        with col3:
+            st.subheader("🔍 Búsqueda")
+            word_search = st.text_input(
+                "Buscar palabra:",
+                placeholder="Ej: sexy, amor, secreto...",
+                help="Buscar en contenido de mensajes"
+            )
+            
+            case_sensitive = st.checkbox("Distinguir mayúsculas/minúsculas")
+        
+        return {
+            'sender_filter': sender_filter,
+            'risk_range': risk_range,
+            'word_search': word_search,
+            'case_sensitive': case_sensitive
+        }
+
+def create_enhanced_detections_table(detected_df, show_explanations=True, max_results=50):
+    """Tabla mejorada para mostrar detecciones con estilo similar a la exportación"""
+    
+    if len(detected_df) == 0:
+        st.info("📊 No hay detecciones que mostrar con los filtros actuales")
+        return
+    
+    # Preparar datos para la tabla
+    table_data = []
+    
+    for idx, row in detected_df.head(max_results).iterrows():
+        # Determinar nivel de riesgo
+        if row['risk_score'] > 0.8:
+            risk_level = "ALTO"
+            risk_color = "🔴"
+            risk_class = "high"
+        elif row['risk_score'] > 0.6:
+            risk_level = "MEDIO"
+            risk_color = "🟡"
+            risk_class = "medium"
+        else:
+            risk_level = "BAJO"
+            risk_color = "🟢"
+            risk_class = "low"
+        
+        # Truncar mensaje para la tabla
+        message_preview = row['message'][:100] + "..." if len(row['message']) > 100 else row['message']
+        
+        table_data.append({
+            'ID': len(table_data) + 1,
+            'Fecha/Hora': row['timestamp'],
+            'Remitente': row['sender'],
+            'Mensaje': message_preview,
+            'Puntuación': f"{row['risk_score']:.3f}",
+            'Nivel': f"{risk_color} {risk_level}",
+            'Términos': row['detected_words'] if row['detected_words'] else "N/A",
+            'Análisis': row['explanation'] if show_explanations else "N/A"
+        })
+    
+    # Crear DataFrame para la tabla
+    table_df = pd.DataFrame(table_data)
+    
+    # Mostrar información de la tabla
+    st.markdown(f"""
+    <div class="detection-table">
+        <div style="padding: 1rem; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-bottom: 1px solid #dee2e6;">
+            <h4 style="margin: 0; color: #495057;">🔍 Detecciones Encontradas</h4>
+            <p style="margin: 0.5rem 0 0 0; color: #6c757d;">
+                Mostrando {len(table_data)} de {len(detected_df)} detecciones totales
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Configurar la tabla con formato
+    st.dataframe(
+        table_df,
+        use_container_width=True,
+        height=600,
+        column_config={
+            "ID": st.column_config.NumberColumn(
+                "ID",
+                width="small",
+                help="Número de detección"
+            ),
+            "Fecha/Hora": st.column_config.TextColumn(
+                "📅 Fecha/Hora",
+                width="medium",
+                help="Momento del mensaje"
+            ),
+            "Remitente": st.column_config.TextColumn(
+                "👤 Remitente",
+                width="small",
+                help="Quien envió el mensaje"
+            ),
+            "Mensaje": st.column_config.TextColumn(
+                "💬 Mensaje",
+                width="large",
+                help="Contenido del mensaje (vista previa)"
+            ),
+            "Puntuación": st.column_config.TextColumn(
+                "⚖️ Puntuación",
+                width="small",
+                help="Nivel de riesgo calculado (0.0-1.0)"
+            ),
+            "Nivel": st.column_config.TextColumn(
+                "🎯 Nivel",
+                width="small",
+                help="Clasificación del riesgo"
+            ),
+            "Términos": st.column_config.TextColumn(
+                "🔍 Términos",
+                width="medium",
+                help="Palabras clave detectadas"
+            ),
+            "Análisis": st.column_config.TextColumn(
+                "🧠 Análisis",
+                width="large",
+                help="Explicación del análisis realizado"
+            ) if show_explanations else None
+        },
+        hide_index=True
+    )
+    
+    # Mostrar algunas estadísticas adicionales de la tabla
+    with st.expander("📊 **Estadísticas de esta vista**"):
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            high_risk = len([d for d in table_data if "ALTO" in d['Nivel']])
+            st.metric("🔴 Alto Riesgo", high_risk)
+        
+        with col2:
+            medium_risk = len([d for d in table_data if "MEDIO" in d['Nivel']])
+            st.metric("🟡 Riesgo Medio", medium_risk)
+        
+        with col3:
+            low_risk = len([d for d in table_data if "BAJO" in d['Nivel']])
+            st.metric("🟢 Riesgo Bajo", low_risk)
+        
+        with col4:
+            avg_score = sum(float(d['Puntuación']) for d in table_data) / len(table_data)
+            st.metric("📊 Promedio", f"{avg_score:.3f}")
+
+def create_enhanced_visualizations(results_df, detection_type):
+    """Visualizaciones mejoradas de los resultados"""
+    
+    detected_df = results_df[results_df['label'] == 'DETECTADO']
+    
+    # Primera fila: Distribución y evolución
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Histograma de distribución de riesgo mejorado
+        fig_hist = px.histogram(
+            results_df, 
+            x='risk_score', 
+            nbins=30,
+            title=f'📊 Distribución de Puntuación de Riesgo - {detection_type}',
+            labels={'risk_score': 'Puntuación de Riesgo', 'count': 'Cantidad de Mensajes'},
+            color_discrete_sequence=['#667eea'],
+            opacity=0.7
+        )
+        
+        # Líneas de referencia mejoradas
+        fig_hist.add_vline(x=0.45, line_dash="dot", line_color="green", 
+                          annotation_text="Sensibilidad Alta", annotation_position="top")
+        fig_hist.add_vline(x=0.60, line_dash="dash", line_color="orange", 
+                          annotation_text="Sensibilidad Media", annotation_position="top")
+        fig_hist.add_vline(x=0.75, line_dash="solid", line_color="red", 
+                          annotation_text="Sensibilidad Baja", annotation_position="top")
+        
+        # Zona de detecciones
+        if len(detected_df) > 0:
+            min_detected = detected_df['risk_score'].min()
+            fig_hist.add_vrect(
+                x0=min_detected, x1=1.0,
+                fillcolor="rgba(255, 0, 0, 0.1)",
+                annotation_text="Zona de Detecciones",
+                annotation_position="top"
+            )
+        
+        fig_hist.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            showlegend=False
+        )
+        st.plotly_chart(fig_hist, use_container_width=True)
+    
+    with col2:
+        if len(detected_df) > 0:
+            # Gráfico de detecciones por remitente mejorado
+            detections_by_sender = detected_df['sender'].value_counts()
+            
+            if len(detections_by_sender) > 1:
+                fig_pie = px.pie(
+                    values=detections_by_sender.values,
+                    names=detections_by_sender.index,
+                    title=f'🎯 Detecciones por Remitente - {detection_type}',
+                    color_discrete_sequence=px.colors.qualitative.Set3
+                )
+                fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+                fig_pie.update_layout(
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                )
+                st.plotly_chart(fig_pie, use_container_width=True)
+            else:
+                # Gráfico alternativo para un solo remitente
+                sender_stats = results_df.groupby('sender').agg({
+                    'risk_score': ['count', 'mean', 'max'],
+                    'label': lambda x: (x == 'DETECTADO').sum()
+                }).round(3)
+                sender_stats.columns = ['Total', 'Promedio', 'Máximo', 'Detectados']
+                
+                fig_bar = px.bar(
+                    x=sender_stats.index,
+                    y=sender_stats['Detectados'],
+                    title=f'🎯 Detecciones por Remitente - {detection_type}',
+                    labels={'x': 'Remitente', 'y': 'Detecciones'},
+                    color=sender_stats['Detectados'],
+                    color_continuous_scale='Reds'
+                )
+                fig_bar.update_layout(
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    showlegend=False
+                )
+                st.plotly_chart(fig_bar, use_container_width=True)
+        else:
+            st.info("📊 No hay detecciones para visualizar")
+    
+    # Segunda fila: Timeline y patrones temporales
+    if len(detected_df) > 0:
+        st.subheader("📅 Análisis Temporal")
+        
+        try:
+            # Timeline de detecciones
+            detected_df_copy = detected_df.copy()
+            detected_df_copy['parsed_date'] = pd.to_datetime(detected_df_copy['timestamp'], errors='coerce', infer_datetime_format=True)
+            detected_df_with_dates = detected_df_copy.dropna(subset=['parsed_date'])
+            
+            if len(detected_df_with_dates) > 0:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    # Timeline diario
+                    daily_counts = detected_df_with_dates.groupby(detected_df_with_dates['parsed_date'].dt.date).size().reset_index()
+                    daily_counts.columns = ['date', 'count']
+                    
+                    if len(daily_counts) > 1:
+                        fig_timeline = px.line(
+                            daily_counts,
+                            x='date',
+                            y='count',
+                            title='📈 Evolución de Detecciones por Día',
+                            markers=True,
+                            color_discrete_sequence=['#e74c3c']
+                        )
+                        fig_timeline.update_layout(
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            xaxis_title="Fecha",
+                            yaxis_title="Número de Detecciones"
+                        )
+                        st.plotly_chart(fig_timeline, use_container_width=True)
+                    else:
+                        st.info("📊 Todas las detecciones ocurrieron en el mismo día")
+                
+                with col2:
+                    # Distribución por hora del día
+                    detected_df_with_dates['hour'] = detected_df_with_dates['parsed_date'].dt.hour
+                    hourly_counts = detected_df_with_dates['hour'].value_counts().sort_index()
+                    
+                    fig_hourly = px.bar(
+                        x=hourly_counts.index,
+                        y=hourly_counts.values,
+                        title='🕐 Detecciones por Hora del Día',
+                        labels={'x': 'Hora', 'y': 'Detecciones'},
+                        color=hourly_counts.values,
+                        color_continuous_scale='Oranges'
+                    )
+                    fig_hourly.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        showlegend=False,
+                        xaxis=dict(tickmode='linear', tick0=0, dtick=2)
+                    )
+                    st.plotly_chart(fig_hourly, use_container_width=True)
+            else:
+                st.info("⏰ No se pudieron parsear las fechas para el análisis temporal")
+        except Exception as e:
+            st.info(f"⏰ No se pudo generar análisis temporal: {str(e)}")
 
 def setup_sensitivity(level, custom_threshold=None):
     """Configura niveles de sensibilidad"""
@@ -648,134 +1122,79 @@ def setup_sensitivity(level, custom_threshold=None):
         config['threshold'] = custom_threshold
     return config
 
-def get_csv_format_instructions():
-    """Retorna las instrucciones del formato CSV"""
-    return """
-    ## 📋 **FORMATO DEL ARCHIVO CSV DE DICCIONARIO**
+def validate_whatsapp_file(content):
+    """Validación más robusta de archivos de WhatsApp"""
+    patterns = [
+        r'\d{1,2}/\d{1,2}/\d{2,4}.*\d{1,2}:\d{2}.*-.*:',  # Formato estándar
+        r'\[\d{1,2}/\d{1,2}/\d{2,4}.*\d{1,2}:\d{2}.*\].*:',  # Con corchetes
+        r'\d{1,2}-\d{1,2}-\d{2,4}.*\d{1,2}:\d{2}.*-.*:'  # Con guiones
+    ]
     
-    El archivo CSV debe tener **exactamente 2 columnas** con los siguientes encabezados:
+    total_lines = len(content.split('\n'))
+    matches = 0
     
-    ```csv
-    termino,categoria
-    sexy,palabras_alta
-    atractiva,palabras_media
-    solos,frases_contexto
-    jefe,contexto_laboral
-    ```
+    for pattern in patterns:
+        pattern_matches = len(re.findall(pattern, content))
+        matches = max(matches, pattern_matches)
     
-    ### **Categorías Válidas:**
+    confidence = matches / max(total_lines, 1) if total_lines > 0 else 0
     
-    | Categoría | Descripción | Peso en Análisis |
-    |-----------|-------------|------------------|
-    | `palabras_alta` | Términos de alto riesgo | ⚠️ **Alto** (0.7-0.8) |
-    | `palabras_media` | Términos de riesgo medio | ⚡ **Medio** (0.3-0.4) |
-    | `frases_contexto` | Frases que dan contexto | 🔍 **Contextual** (0.5-0.6) |
-    | `contexto_laboral` | Términos de trabajo/profesional | 🏢 **Laboral** (0.3-0.5) |
-    | `contexto_relacion` | Términos de relaciones | ❤️ **Relacional** (0.4) |
-    | `contexto_financiero` | Términos financieros | 💰 **Financiero** (0.4) |
-    | `contexto_agresion` | Términos agresivos | 😠 **Agresivo** (0.6) |
-    | `contexto_emocional` | Expresiones emocionales | 😢 **Emocional** (0.3) |
-    | `contexto_digital` | Términos digitales/redes | 📱 **Digital** (0.3) |
-    | `contexto_sustancias` | Referencias a sustancias | 🚫 **Sustancias** (0.5) |
-    
-    ### **Ejemplo Completo:**
-    ```csv
-    termino,categoria
-    sexy,palabras_alta
-    hermosa,palabras_media
-    atractiva,palabras_media
-    solos,frases_contexto
-    secreto,frases_contexto
-    jefe,contexto_laboral
-    ascenso,contexto_laboral
-    amor,contexto_relacion
-    beso,contexto_relacion
-    odio,contexto_agresion
-    matar,contexto_agresion
-    ```
-    """
+    if confidence > 0.1:  # Al menos 10% de líneas parecen mensajes
+        return True, f"Formato WhatsApp detectado (confianza: {confidence:.1%})"
+    else:
+        return False, f"No parece ser un archivo de WhatsApp válido (confianza: {confidence:.1%})"
 
-def load_dictionary_from_file(uploaded_file):
-    """Carga diccionario desde archivo subido con validación mejorada"""
-    dictionary = {
-        'high_risk': [],
-        'medium_risk': [], 
-        'context_phrases': [],
-        'work_context': []
-    }
+def extract_messages_from_text(content):
+    """Extrae mensajes de texto de WhatsApp con parsing robusto mejorado"""
+    patterns = [
+        # Formato Android común con AM/PM
+        r'(\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}\s[ap]\.?\s?m\.?)\s*-\s*([^:]+?):\s*(.+)',
+        # Formato con corchetes
+        r'\[(\d{1,2}/\d{1,2}/\d{2,4}(?:,|\s)\s*\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\]\s*([^:]+?):\s*(.+)',
+        # Formato simple sin AM/PM
+        r'(\d{1,2}/\d{1,2}/\d{2,4}\s+\d{1,2}:\d{2}(?:\s*[APap][Mm])?)\s*-\s*([^:]+?):\s*(.+)',
+        # Formato ISO con coma
+        r'(\d{1,2}/\d{1,2}/\d{4},\s*\d{1,2}:\d{2})\s*-\s*([^:]+?):\s*(.+)',
+        # Formato alternativo con guión
+        r'(\d{1,2}-\d{1,2}-\d{2,4}\s+\d{1,2}:\d{2})\s*-\s*([^:]+?):\s*(.+)'
+    ]
     
-    try:
-        if uploaded_file.name.endswith('.csv'):
-            content = uploaded_file.read().decode('utf-8')
-            reader = csv.DictReader(io.StringIO(content))
-        else:
-            st.error("❌ Solo se aceptan archivos .csv")
-            return None
-        
-        expected_headers = ['termino', 'categoria']
-        if not all(header in reader.fieldnames for header in expected_headers):
-            st.error(f"❌ El archivo debe tener las columnas: {', '.join(expected_headers)}")
-            st.error(f"📋 Columnas encontradas: {', '.join(reader.fieldnames)}")
-            return None
-        
-        category_map = {
-            'palabras_alta': 'high_risk',
-            'palabras_media': 'medium_risk', 
-            'frases_contexto': 'context_phrases',
-            'contexto_laboral': 'work_context',
-            'contexto_relacion': 'work_context',
-            'contexto_financiero': 'work_context',
-            'contexto_agresion': 'work_context',
-            'contexto_emocional': 'work_context',
-            'contexto_digital': 'work_context',
-            'contexto_sustancias': 'work_context'
-        }
-        
-        valid_categories = set(category_map.keys())
-        loaded_terms = 0
-        invalid_categories = set()
-        
-        for row in reader:
-            if not row['termino'] or row['termino'].startswith('#'):
-                continue
+    best_pattern_matches = []
+    
+    for pattern in patterns:
+        matches = re.findall(pattern, content, re.MULTILINE | re.IGNORECASE)
+        if matches:
+            clean_matches = []
+            for match in matches:
+                timestamp = match[0].strip()
+                sender = match[1].strip()
+                message = match[2].strip()
+                
+                # Filtrar mensajes del sistema y multimedia
+                system_messages = [
+                    '<multimedia omitido>', '<media omitted>', 'se unió usando', 
+                    'cambió el asunto', 'eliminó este mensaje', 'mensaje eliminado',
+                    'left', 'joined', 'changed subject to', 'created group',
+                    'added', 'removed', 'security code changed'
+                ]
+                
+                if not message or any(sys_msg in message.lower() for sys_msg in system_messages):
+                    continue
+                
+                # Validar que el sender no sea muy largo (probable error de parsing)
+                if len(sender) > 50:
+                    continue
+                
+                # Validar que no sea una línea de continuación
+                if len(message) < 5:
+                    continue
+                
+                clean_matches.append((timestamp, sender, message))
             
-            term = row['termino'].strip().lower()
-            category = row['categoria'].strip().lower()
-            
-            if category not in valid_categories:
-                invalid_categories.add(category)
-                continue
-            
-            mapped_category = category_map[category]
-            if term and term not in dictionary[mapped_category]:
-                dictionary[mapped_category].append(term)
-                loaded_terms += 1
-        
-        if invalid_categories:
-            st.warning(f"⚠️ Categorías inválidas ignoradas: {', '.join(invalid_categories)}")
-        
-        if loaded_terms > 0:
-            st.success(f"✅ Diccionario cargado: {loaded_terms} términos")
-            
-            # Mostrar distribución
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("Alto Riesgo", len(dictionary['high_risk']))
-            with col2:
-                st.metric("Riesgo Medio", len(dictionary['medium_risk']))
-            with col3:
-                st.metric("Contexto", len(dictionary['context_phrases']))
-            with col4:
-                st.metric("Laboral", len(dictionary['work_context']))
-            
-            return dictionary
-        else:
-            st.error("❌ No se pudieron cargar términos válidos")
-            return None
-        
-    except Exception as e:
-        st.error(f"❌ Error al procesar archivo: {str(e)}")
-        return None
+            if len(clean_matches) > len(best_pattern_matches):
+                best_pattern_matches = clean_matches
+    
+    return best_pattern_matches
 
 def get_predefined_dictionaries():
     """Retorna diccionarios predefinidos mejorados"""
@@ -863,324 +1282,140 @@ def get_predefined_dictionaries():
         }
     }
 
-def extract_messages_from_text(content):
-    """Extrae mensajes de texto de WhatsApp con parsing robusto"""
-    patterns = [
-        # Formato Android común con AM/PM
-        r'(\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}\s[ap]\.?\s?m\.?)\s*-\s*([^:]+?):\s*(.+)',
-        # Formato con corchetes
-        r'\[(\d{1,2}/\d{1,2}/\d{2,4}(?:,|\s)\s*\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\]\s*([^:]+?):\s*(.+)',
-        # Formato simple sin AM/PM
-        r'(\d{1,2}/\d{1,2}/\d{2,4}\s+\d{1,2}:\d{2}(?:\s*[APap][Mm])?)\s*-\s*([^:]+?):\s*(.+)',
-        # Formato ISO con coma
-        r'(\d{1,2}/\d{1,2}/\d{4},\s*\d{1,2}:\d{2})\s*-\s*([^:]+?):\s*(.+)',
-        # Formato alternativo con guión
-        r'(\d{1,2}-\d{1,2}-\d{2,4}\s+\d{1,2}:\d{2})\s*-\s*([^:]+?):\s*(.+)'
-    ]
+def load_dictionary_from_file(uploaded_file):
+    """Carga diccionario desde archivo subido con validación mejorada"""
+    dictionary = {
+        'high_risk': [],
+        'medium_risk': [], 
+        'context_phrases': [],
+        'work_context': []
+    }
     
-    all_matches = []
-    best_pattern_matches = []
-    
-    for pattern in patterns:
-        matches = re.findall(pattern, content, re.MULTILINE | re.IGNORECASE)
-        if matches:
-            clean_matches = []
-            for match in matches:
-                timestamp = match[0].strip()
-                sender = match[1].strip()
-                message = match[2].strip()
-                
-                # Filtrar mensajes del sistema y multimedia
-                system_messages = [
-                    '<multimedia omitido>', '<media omitted>', 'se unió usando', 
-                    'cambió el asunto', 'eliminó este mensaje', 'mensaje eliminado',
-                    'left', 'joined', 'changed subject to'
-                ]
-                
-                if not message or any(sys_msg in message.lower() for sys_msg in system_messages):
-                    continue
-                
-                # Validar que el sender no sea muy largo (probable error de parsing)
-                if len(sender) > 50:
-                    continue
-                
-                clean_matches.append((timestamp, sender, message))
-            
-            if len(clean_matches) > len(best_pattern_matches):
-                best_pattern_matches = clean_matches
-    
-    return best_pattern_matches
-
-def create_visualizations(results_df, detection_type):
-    """Crea visualizaciones mejoradas de los resultados"""
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Histograma de distribución de riesgo
-        fig_hist = px.histogram(
-            results_df, 
-            x='risk_score', 
-            nbins=25,
-            title=f'📊 Distribución de Puntuación de Riesgo - {detection_type}',
-            labels={'risk_score': 'Puntuación de Riesgo', 'count': 'Cantidad de Mensajes'},
-            color_discrete_sequence=['#667eea']
-        )
-        
-        # Líneas de referencia
-        fig_hist.add_vline(x=0.45, line_dash="dot", line_color="green", 
-                          annotation_text="Sensibilidad Alta", annotation_position="top")
-        fig_hist.add_vline(x=0.60, line_dash="dash", line_color="orange", 
-                          annotation_text="Sensibilidad Media", annotation_position="top")
-        fig_hist.add_vline(x=0.75, line_dash="solid", line_color="red", 
-                          annotation_text="Sensibilidad Baja", annotation_position="top")
-        
-        fig_hist.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            showlegend=False
-        )
-        st.plotly_chart(fig_hist, use_container_width=True)
-    
-    with col2:
-        # Gráfico de detecciones por remitente
-        detections_by_sender = results_df[results_df['label'] == 'DETECTADO']['sender'].value_counts()
-        if not detections_by_sender.empty and len(detections_by_sender) > 1:
-            fig_pie = px.pie(
-                values=detections_by_sender.values,
-                names=detections_by_sender.index,
-                title=f'🎯 Detecciones por Remitente - {detection_type}',
-                color_discrete_sequence=px.colors.qualitative.Set3
-            )
-            fig_pie.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-            )
-            st.plotly_chart(fig_pie, use_container_width=True)
+    try:
+        if uploaded_file.name.endswith('.csv'):
+            content = uploaded_file.read().decode('utf-8')
+            reader = csv.DictReader(io.StringIO(content))
         else:
-            # Gráfico de barras alternativo si hay pocos remitentes
-            sender_stats = results_df.groupby('sender').agg({
-                'risk_score': ['count', 'mean', 'max'],
-                'label': lambda x: (x == 'DETECTADO').sum()
-            }).round(3)
-            sender_stats.columns = ['Total', 'Promedio', 'Máximo', 'Detectados']
-            
-            if len(sender_stats) > 0:
-                fig_bar = px.bar(
-                    x=sender_stats.index,
-                    y=sender_stats['Detectados'],
-                    title=f'🎯 Detecciones por Remitente - {detection_type}',
-                    labels={'x': 'Remitente', 'y': 'Detecciones'},
-                    color_discrete_sequence=['#e74c3c']
-                )
-                st.plotly_chart(fig_bar, use_container_width=True)
-            else:
-                st.info("📊 No hay suficientes datos para visualizar")
-    
-    # Timeline de actividad si hay detecciones
-    detected_df = results_df[results_df['label'] == 'DETECTADO']
-    if len(detected_df) > 0:
-        st.subheader("📅 Timeline de Detecciones")
+            st.error("❌ Solo se aceptan archivos .csv")
+            return None
         
-        try:
-            # Intentar parsear fechas para timeline
-            detected_df['parsed_date'] = pd.to_datetime(detected_df['timestamp'], errors='coerce', infer_datetime_format=True)
-            detected_df_with_dates = detected_df.dropna(subset=['parsed_date'])
+        expected_headers = ['termino', 'categoria']
+        if not all(header in reader.fieldnames for header in expected_headers):
+            st.error(f"❌ El archivo debe tener las columnas: {', '.join(expected_headers)}")
+            st.error(f"📋 Columnas encontradas: {', '.join(reader.fieldnames)}")
+            return None
+        
+        category_map = {
+            'palabras_alta': 'high_risk',
+            'palabras_media': 'medium_risk', 
+            'frases_contexto': 'context_phrases',
+            'contexto_laboral': 'work_context',
+            'contexto_relacion': 'work_context',
+            'contexto_financiero': 'work_context',
+            'contexto_agresion': 'work_context',
+            'contexto_emocional': 'work_context',
+            'contexto_digital': 'work_context',
+            'contexto_sustancias': 'work_context'
+        }
+        
+        valid_categories = set(category_map.keys())
+        loaded_terms = 0
+        invalid_categories = set()
+        
+        for row in reader:
+            if not row['termino'] or row['termino'].startswith('#'):
+                continue
             
-            if len(detected_df_with_dates) > 0:
-                # Agrupar por día
-                daily_counts = detected_df_with_dates.groupby(detected_df_with_dates['parsed_date'].dt.date).size().reset_index()
-                daily_counts.columns = ['date', 'count']
-                
-                if len(daily_counts) > 1:
-                    fig_timeline = px.line(
-                        daily_counts,
-                        x='date',
-                        y='count',
-                        title='📈 Evolución de Detecciones por Día',
-                        markers=True,
-                        color_discrete_sequence=['#e74c3c']
-                    )
-                    fig_timeline.update_layout(
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        paper_bgcolor='rgba(0,0,0,0)',
-                        xaxis_title="Fecha",
-                        yaxis_title="Número de Detecciones"
-                    )
-                    st.plotly_chart(fig_timeline, use_container_width=True)
-                else:
-                    st.info("📊 Todas las detecciones ocurrieron en el mismo día")
-            else:
-                st.info("⏰ No se pudieron parsear las fechas para el timeline")
-        except Exception as e:
-            st.info(f"⏰ No se pudo generar timeline temporal: {str(e)}")
+            term = row['termino'].strip().lower()
+            category = row['categoria'].strip().lower()
+            
+            if category not in valid_categories:
+                invalid_categories.add(category)
+                continue
+            
+            mapped_category = category_map[category]
+            if term and term not in dictionary[mapped_category]:
+                dictionary[mapped_category].append(term)
+                loaded_terms += 1
+        
+        if invalid_categories:
+            st.warning(f"⚠️ Categorías inválidas ignoradas: {', '.join(invalid_categories)}")
+        
+        if loaded_terms > 0:
+            st.success(f"✅ Diccionario cargado: {loaded_terms} términos")
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Alto Riesgo", len(dictionary['high_risk']))
+            with col2:
+                st.metric("Riesgo Medio", len(dictionary['medium_risk']))
+            with col3:
+                st.metric("Contexto", len(dictionary['context_phrases']))
+            with col4:
+                st.metric("Laboral", len(dictionary['work_context']))
+            
+            return dictionary
+        else:
+            st.error("❌ No se pudieron cargar términos válidos")
+            return None
+        
+    except Exception as e:
+        st.error(f"❌ Error al procesar archivo: {str(e)}")
+        return None
 
-def show_instructions():
-    """Muestra el instructivo completo de la aplicación"""
-    st.markdown("""
-    # 📖 **INSTRUCTIVO COMPLETO - WhatsApp Analyzer**
+def process_messages_in_batches(messages, analyzer, config, dictionary, detection_type, batch_size=50):
+    """Procesa mensajes en lotes para mejor rendimiento"""
+    total_batches = (len(messages) + batch_size - 1) // batch_size
+    results = []
     
-    ## 🎯 **¿QUÉ HACE ESTA APLICACIÓN?**
+    progress_bar = st.progress(0)
+    status_text = st.empty()
     
-    Esta herramienta analiza conversaciones de WhatsApp para detectar patrones de comportamiento potencialmente problemáticos usando **análisis inteligente de texto**. 
+    for batch_num in range(total_batches):
+        start_idx = batch_num * batch_size
+        end_idx = min((batch_num + 1) * batch_size, len(messages))
+        batch = messages[start_idx:end_idx]
+        
+        # Actualizar progreso
+        progress = (batch_num + 1) / total_batches
+        progress_bar.progress(progress)
+        status_text.text(f"Procesando lote {batch_num + 1}/{total_batches} ({end_idx}/{len(messages)} mensajes)")
+        
+        # Procesar lote
+        for i, (timestamp, sender, message) in enumerate(batch):
+            risk, label, words, analysis_details, explanation = analyzer.analyze_message(
+                message, sender, timestamp, config, dictionary, detection_type
+            )
+            
+            results.append({
+                'timestamp': timestamp,
+                'sender': sender,
+                'message': message,
+                'risk_score': round(risk, 4),
+                'label': label,
+                'detected_words': ', '.join(words) if words else "",
+                'explanation': explanation
+            })
+        
+        # Pequeña pausa para no sobrecargar
+        time.sleep(0.1)
     
-    ### **Tipos de Detección Disponibles:**
+    progress_bar.empty()
+    status_text.empty()
     
-    | 🔍 Tipo | 📝 Descripción | 🎯 Detecta |
-    |---------|----------------|-------------|
-    | **🚨 Acoso Sexual** | Comportamientos de acoso o insinuaciones inapropiadas | Lenguaje sexual, propuestas inapropiadas, acoso laboral |
-    | **😠 CyberBullying** | Intimidación, insultos y agresión digital | Insultos, amenazas, exclusión social, humillación |
-    | **💔 Infidelidades** | Indicios de relaciones extramaritales o engaños | Expresiones de amor oculto, citas secretas, doble vida |
-    
-    ## 🛠️ **CÓMO USAR LA APLICACIÓN**
-    
-    ### **Paso 1: Exportar Chat de WhatsApp**
-    
-    #### **📱 En Android:**
-    1. Abre WhatsApp
-    2. Ve al chat que quieres analizar
-    3. Toca los **3 puntos** (⋮) → **Más** → **Exportar chat**
-    4. Selecciona **"Sin archivos multimedia"**
-    5. Guarda el archivo `.txt`
-    
-    #### **📱 En iPhone:**
-    1. Abre WhatsApp
-    2. Ve al chat que quieres analizar  
-    3. Toca el **nombre del contacto/grupo**
-    4. Desliza hacia abajo → **Exportar chat**
-    5. Selecciona **"Sin archivos multimedia"**
-    6. Guarda el archivo `.txt`
-    
-    ### **Paso 2: Configurar el Análisis**
-    
-    #### **🎯 Seleccionar Tipo de Detección:**
-    - **Acoso Sexual**: Para detectar comportamientos inapropiados
-    - **CyberBullying**: Para identificar intimidación o agresión
-    - **Infidelidades**: Para encontrar indicios de engaños
-    - **Diccionario Personalizado**: Para usar tus propios términos
-    
-    #### **🎚️ Configurar Sensibilidad:**
-    - **Baja (0.75)**: Conservador - Solo casos evidentes
-    - **Media (0.60)**: Balanceado - Precisión óptima (recomendado)
-    - **Alta (0.45)**: Agresivo - Detecta casos sutiles
-    
-    ### **Paso 3: Subir y Analizar**
-    
-    1. **Sube el archivo .txt** del chat exportado
-    2. **Configura los parámetros** en la barra lateral
-    3. **Ejecuta el análisis** (puede tardar varios minutos)
-    4. **Revisa los resultados** en las diferentes secciones
-    
-    ## 🧠 **CÓMO FUNCIONA EL ANÁLISIS INTELIGENTE**
-    
-    ### **Características del Sistema:**
-    
-    - **Detección de Negaciones**: Distingue "Eres sexy" de "No eres sexy"
-    - **Análisis de Intensidad**: Reconoce MAYÚSCULAS, !!!, repeticiones
-    - **Contexto Específico**: Adapta el análisis según el tipo de detección
-    - **Análisis Temporal**: Considera horarios (nocturno, laboral)
-    - **Patrones de Comportamiento**: Detecta frases características
-    - **Análisis de Sentimientos**: Evalúa tono positivo/negativo/neutral
-    
-    ### **Tecnologías Utilizadas:**
-    
-    - **TextBlob**: Para análisis de sentimientos (si está disponible)
-    - **spaCy**: Para análisis NLP avanzado (si está disponible)
-    - **Regex Avanzado**: Para detección de patrones específicos
-    - **Análisis Contextual**: Algoritmos propios para contexto
-    
-    ## 📊 **INTERPRETANDO LOS RESULTADOS**
-    
-    ### **🎯 Métricas Principales:**
-    
-    | 📊 Métrica | 📝 Significado |
-    |------------|----------------|
-    | **Total Mensajes** | Cantidad total de mensajes analizados |
-    | **Detectados** | Mensajes que superaron el umbral de riesgo |
-    | **Porcentaje** | % de mensajes problemáticos |
-    | **Riesgo Promedio** | Puntuación promedio de riesgo (0.0 - 1.0) |
-    
-    ### **🚦 Niveles de Riesgo:**
-    
-    - 🟢 **0.0 - 0.4**: Riesgo bajo o nulo
-    - 🟡 **0.4 - 0.6**: Riesgo moderado, revisar contexto
-    - 🔴 **0.6 - 1.0**: Riesgo alto, requiere atención
-    
-    ### **📋 Sección de Evidencias:**
-    
-    Cada evidencia muestra:
-    - **👤 Remitente**: Quién envió el mensaje
-    - **📅 Fecha/Hora**: Cuándo se envió
-    - **💬 Mensaje**: Contenido completo
-    - **⚖️ Puntuación**: Nivel de riesgo calculado
-    - **🎯 Términos**: Palabras específicas detectadas
-    - **🧠 Explicación**: Por qué se detectó (sentimiento, contexto, etc.)
-    
-    ## ⚖️ **CONSIDERACIONES LEGALES Y ÉTICAS**
-    
-    ### **🔒 Privacidad:**
-    - ✅ **Procesamiento local**: Todos los datos se procesan en tu navegador
-    - ✅ **No almacenamiento**: No guardamos ningún archivo o conversación
-    - ✅ **Sin envío de datos**: Nada se envía a servidores externos
-    
-    ### **⚖️ Uso Responsable:**
-    - 📋 **Solo usar con consentimiento** de todas las partes involucradas
-    - 🏛️ **Cumplir con leyes locales** de privacidad y protección de datos
-    - 👨‍⚖️ **No es evidencia legal**: Los resultados requieren validación profesional
-    - 🔍 **Herramienta de apoyo**: Para investigación preliminar, no conclusiones finales
-    
-    ### **⚠️ Limitaciones:**
-    - 🤖 **IA no es 100% precisa**: Siempre revisar resultados manualmente
-    - 📝 **Falsos positivos posibles**: Especialmente con sarcasmo o bromas
-    - 🌍 **Optimizado para español**: Otros idiomas pueden dar resultados imprecisos
-    - 📊 **Requiere volumen**: Pocos mensajes pueden dar análisis limitado
-    
-    ## 🚨 **SOLUCIÓN DE PROBLEMAS**
-    
-    ### **❌ "No se pudieron extraer mensajes"**
-    - Verifica que el archivo sea una exportación de WhatsApp
-    - Asegúrate de exportar "sin archivos multimedia"
-    - El archivo debe estar en formato .txt
-    
-    ### **⚠️ "Error al cargar diccionario"**
-    - Verifica que el CSV tenga las columnas: `termino,categoria`
-    - Usa categorías válidas (ver formato arriba)
-    - Asegúrate de que el archivo esté en UTF-8
-    
-    ### **🐌 "El análisis es muy lento"**
-    - Chats muy largos (>5000 mensajes) pueden tardar varios minutos
-    - Considera dividir el chat en períodos más pequeños
-    - Usar sensibilidad "baja" es más rápido
-    
-    ### **📊 "Muchos falsos positivos"**
-    - Reduce la sensibilidad a "baja"
-    - Aumenta el umbral personalizado (ej: 0.75)
-    - Revisa manualmente los resultados
-    
-    ## ✅ **RESUMEN RÁPIDO**
-    
-    1. **📤 Exporta** chat de WhatsApp (sin multimedia)
-    2. **🎯 Selecciona** tipo de detección
-    3. **⚙️ Configura** sensibilidad
-    4. **📁 Sube** archivo .txt
-    5. **🔄 Analiza** y espera resultados
-    6. **📊 Revisa** evidencias y gráficos
-    7. **💾 Descarga** reportes si necesario
-    
-    **¡Listo para comenzar el análisis!** 🚀
-    """)
+    return results
 
 def main():
-    # Header principal
+    # Header principal mejorado
     st.markdown("""
     <div class="main-header">
-        <h1>🔍 Analizador WhatsApp Inteligente</h1>
+        <h1>🔍 WhatsApp Analyzer 5.0 - Enhanced Edition</h1>
         <p>Sistema avanzado para detección de patrones de comportamiento en chats</p>
-        <small>Versión 4.5 - Streamlit Cloud Optimized</small>
+        <small>Versión 5.0 - Con mejoras de rendimiento, visualizaciones avanzadas y tabla optimizada</small>
     </div>
     """, unsafe_allow_html=True)
     
-    # Mostrar estado de las herramientas
+    # Mostrar estado de las herramientas mejorado
     col1, col2 = st.columns(2)
     with col1:
         if SPACY_AVAILABLE:
@@ -1194,17 +1429,152 @@ def main():
         else:
             st.info("ℹ️ **Análisis Básico de Sentimientos** (algoritmo propio)")
     
-    # Crear tabs principales
-    tab1, tab2, tab3 = st.tabs(["🔍 Análisis", "📖 Instructivo", "📁 Formato CSV"])
+    # Tabs principales
+    tab1, tab2, tab3 = st.tabs(["🔍 Análisis", "📖 Instructivo", "📄 Formato CSV"])
     
     with tab3:
-        st.markdown(get_csv_format_instructions())
+        st.markdown("""
+        ## 📋 **FORMATO DEL ARCHIVO CSV DE DICCIONARIO**
+        
+        El archivo CSV debe tener **exactamente 2 columnas** con los siguientes encabezados:
+        
+        ```csv
+        termino,categoria
+        sexy,palabras_alta
+        atractiva,palabras_media
+        solos,frases_contexto
+        jefe,contexto_laboral
+        ```
+        
+        ### **Categorías Válidas:**
+        
+        | Categoría | Descripción | Peso en Análisis |
+        |-----------|-------------|------------------|
+        | `palabras_alta` | Términos de alto riesgo | ⚠️ **Alto** (0.7-0.8) |
+        | `palabras_media` | Términos de riesgo medio | ⚡ **Medio** (0.3-0.4) |
+        | `frases_contexto` | Frases que dan contexto | 🔍 **Contextual** (0.5-0.6) |
+        | `contexto_laboral` | Términos de trabajo/profesional | 🏢 **Laboral** (0.3-0.5) |
+        """)
     
     with tab2:
-        show_instructions()
+        st.markdown("""
+        # 📖 **INSTRUCTIVO COMPLETO - WhatsApp Analyzer 5.0**
+        
+        ## 🎯 **¿QUÉ HACE ESTA APLICACIÓN?**
+        
+        Esta herramienta analiza conversaciones de WhatsApp para detectar patrones de comportamiento potencialmente problemáticos usando **análisis inteligente de texto** con tecnología NLP.
+        
+        ### **Nuevas Características v5.0:**
+        - 📊 **Tabla mejorada** para visualizar detecciones
+        - ⚡ **Procesamiento en lotes** para mejor rendimiento
+        - 📈 **Métricas avanzadas** y análisis temporal
+        - 🔍 **Filtros avanzados** para explorar resultados
+        - 🎨 **Interfaz optimizada** con mejor UX
+        
+        ### **Tipos de Detección:**
+        
+        | 🔍 Tipo | 📝 Descripción | 🎯 Detecta |
+        |---------|----------------|-------------|
+        | **🚨 Acoso Sexual** | Comportamientos inapropiados | Lenguaje sexual, propuestas inapropiadas, acoso laboral |
+        | **😠 CyberBullying** | Intimidación y agresión digital | Insultos, amenazas, exclusión social, humillación |
+        | **💔 Infidelidades** | Indicios de relaciones extramaritales | Expresiones de amor oculto, citas secretas, doble vida |
+        
+        ## 🛠️ **CÓMO USAR LA APLICACIÓN**
+        
+        ### **Paso 1: Exportar Chat de WhatsApp**
+        
+        #### **📱 En Android:**
+        1. Abre WhatsApp → Chat específico
+        2. Toca **⋮** → **Más** → **Exportar chat**
+        3. Selecciona **"Sin archivos multimedia"**
+        4. Guarda el archivo `.txt`
+        
+        #### **📱 En iPhone:**
+        1. Abre WhatsApp → Chat específico
+        2. Toca el **nombre del contacto/grupo**
+        3. **Exportar chat** → **"Sin archivos multimedia"**
+        4. Guarda el archivo `.txt`
+        
+        ### **Paso 2: Configurar y Analizar**
+        
+        1. **Selecciona tipo de detección** (Acoso, Bullying, Infidelidades, etc.)
+        2. **Configura sensibilidad** (Baja, Media, Alta)
+        3. **Sube el archivo .txt** exportado
+        4. **Revisa resultados** en la tabla mejorada
+        5. **Descarga reportes** si es necesario
+        
+        ## 📊 **NUEVAS CARACTERÍSTICAS DE LA TABLA**
+        
+        La tabla mejorada muestra:
+        - **ID único** para cada detección
+        - **Fecha/Hora** formateada
+        - **Remitente** identificado
+        - **Vista previa del mensaje** (truncada para legibilidad)
+        - **Puntuación de riesgo** precisa (0.000-1.000)
+        - **Nivel de riesgo** visual (🔴 Alto, 🟡 Medio, 🟢 Bajo)
+        - **Términos detectados** específicos
+        - **Análisis detallado** explicativo (opcional)
+        
+        ## ⚡ **MEJORAS DE RENDIMIENTO**
+        
+        - **Procesamiento en lotes**: Chats grandes se procesan eficientemente
+        - **Cache inteligente**: Evita reprocesamiento innecesario
+        - **Progreso detallado**: Indicadores en tiempo real
+        - **Validación robusta**: Mejor detección de archivos WhatsApp
+        
+        ## 🔍 **FILTROS AVANZADOS**
+        
+        - **Por remitente**: Filtra mensajes específicos
+        - **Por rango de riesgo**: Ajusta sensibilidad de visualización
+        - **Búsqueda de texto**: Encuentra palabras específicas
+        - **Configuración de límites**: Controla cantidad de resultados
+        
+        ## ⚖️ **CONSIDERACIONES LEGALES Y ÉTICAS**
+        
+        ### **🔒 Privacidad:**
+        - ✅ **100% Local**: Todo se procesa en tu navegador
+        - ✅ **Sin almacenamiento**: Nada se guarda en servidores
+        - ✅ **Sin envío de datos**: Completa privacidad
+        
+        ### **⚖️ Uso Responsable:**
+        - 📋 **Solo con consentimiento** de las partes involucradas
+        - 🛡️ **Cumplir leyes locales** de privacidad
+        - 👨‍⚖️ **No es evidencia legal**: Requiere validación profesional
+        - 🔍 **Herramienta de apoyo**: Para investigación preliminar
+        
+        ## 🚨 **SOLUCIÓN DE PROBLEMAS**
+        
+        ### **❌ "No se pudieron extraer mensajes"**
+        - Verifica formato de exportación de WhatsApp
+        - Asegúrate de exportar "sin multimedia"
+        - Valida que el archivo no esté corrupto
+        
+        ### **⚡ "Análisis lento"**
+        - Chats >5000 mensajes pueden tardar varios minutos
+        - El procesamiento en lotes mejora la experiencia
+        - Usar sensibilidad "baja" es más rápido
+        
+        ### **📊 "Muchos falsos positivos"**
+        - Reduce sensibilidad o aumenta umbral
+        - Usa filtros para revisar casos específicos
+        - Revisa manualmente los resultados
+        
+        ## ✅ **RESUMEN RÁPIDO v5.0**
+        
+        1. **📤 Exporta** chat (sin multimedia)
+        2. **🎯 Selecciona** tipo de detección
+        3. **⚙️ Configura** sensibilidad
+        4. **📁 Sube** archivo .txt
+        5. **🔄 Analiza** (procesamiento mejorado)
+        6. **📊 Explora** tabla de detecciones
+        7. **🔍 Filtra** resultados según necesidad
+        8. **💾 Descarga** reportes completos
+        
+        **¡Listo para el análisis avanzado!** 🚀
+        """)
     
     with tab1:
-        # Sidebar - Configuración
+        # Sidebar - Configuración mejorada
         with st.sidebar:
             st.header("⚙️ Configuración del Análisis")
             
@@ -1215,7 +1585,7 @@ def main():
                 help="Selecciona qué patrón quieres detectar"
             )
             
-            # Mostrar información del tipo seleccionado
+            # Información del tipo seleccionado
             if detection_type != "Diccionario Personalizado":
                 info_dict = {
                     "Acoso Sexual": "🚨 Detecta insinuaciones inapropiadas, propuestas sexuales, acoso laboral",
@@ -1224,7 +1594,7 @@ def main():
                 }
                 st.info(info_dict[detection_type])
             
-            # Diccionario personalizado o predefinido
+            # Diccionario
             dictionary = None
             if detection_type == "Diccionario Personalizado":
                 st.subheader("📁 Subir Diccionario CSV")
@@ -1272,7 +1642,6 @@ jefe,contexto_laboral""")
                 help="Baja: Menos falsos positivos | Alta: Detecta más casos"
             )
             
-            # Explicación de sensibilidad
             sensitivity_info = {
                 'baja': "🟢 Conservador - Solo casos evidentes (umbral: 0.75)",
                 'media': "🟡 Balanceado - Precisión óptima (umbral: 0.60)", 
@@ -1293,27 +1662,34 @@ jefe,contexto_laboral""")
             
             st.divider()
             
-            # Configuraciones adicionales
+            # Opciones avanzadas
             st.subheader("🔧 Opciones Avanzadas")
             
             show_explanations = st.checkbox(
-                "📝 Mostrar Explicaciones Detalladas",
+                "🧠 Mostrar Explicaciones Detalladas",
                 value=True,
                 help="Incluye explicaciones de por qué se detectó cada caso"
             )
             
             max_results = st.selectbox(
-                "📊 Máximo de Evidencias a Mostrar",
-                [10, 20, 50, 100, "Todas"],
+                "📊 Máximo de Evidencias en Tabla",
+                [25, 50, 100, 200, "Todas"],
                 index=1,
-                help="Limita resultados para mejor rendimiento"
+                help="Limita resultados en tabla para mejor rendimiento"
+            )
+            
+            batch_size = st.selectbox(
+                "⚡ Tamaño de Lote de Procesamiento",
+                [25, 50, 100, 200],
+                index=1,
+                help="Lotes más grandes = más rápido, pero menos feedback"
             )
         
-        # Main content area
+        # Área principal de contenido
         st.header("📤 Subir Archivo de Chat")
         
         # Instrucciones rápidas
-        with st.expander("🔧 ¿Cómo exportar chat de WhatsApp?"):
+        with st.expander("📧 ¿Cómo exportar chat de WhatsApp?"):
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown("""
@@ -1343,6 +1719,25 @@ jefe,contexto_laboral""")
             try:
                 content = uploaded_file.read().decode('utf-8')
                 
+                # Validación mejorada
+                is_valid, validation_message = validate_whatsapp_file(content)
+                
+                if not is_valid:
+                    st.error(f"❌ **{validation_message}**")
+                    st.info("""
+                    **Posibles causas:**
+                    - El archivo no es una exportación válida de WhatsApp
+                    - Formato de fecha no reconocido
+                    - Archivo corrupto o modificado
+                    
+                    **Solución:**
+                    - Verifica que sea un archivo .txt exportado directamente de WhatsApp
+                    - Asegúrate de seleccionar "Sin archivos multimedia" al exportar
+                    """)
+                    st.stop()
+                
+                st.success(f"✅ **{validation_message}**")
+                
                 if len(content.strip()) < 100:
                     st.error("❌ El archivo parece estar vacío o muy corto")
                     st.stop()
@@ -1367,11 +1762,11 @@ jefe,contexto_laboral""")
                 
                 st.success(f"✅ **{len(messages)} mensajes extraídos correctamente**")
                 
-                # Mostrar muestra de mensajes
+                # Vista previa de mensajes
                 with st.expander(f"👀 Vista previa de mensajes (primeros 5 de {len(messages)})"):
                     for i, (timestamp, sender, message) in enumerate(messages[:5]):
                         st.markdown(f"""
-                        <div class="chat-message">
+                        <div style="background: #f8f9fa; padding: 1rem; margin: 0.5rem 0; border-radius: 8px; border-left: 3px solid #667eea;">
                             <strong>📅 {timestamp}</strong> | <strong>👤 {sender}</strong><br>
                             💬 {message[:100]}{'...' if len(message) > 100 else ''}
                         </div>
@@ -1395,73 +1790,63 @@ jefe,contexto_laboral""")
                 # Inicializar analizador
                 analyzer = SmartTextAnalyzer()
                 
-                # Procesar mensajes
-                with st.spinner(f"🔄 Analizando {len(messages)} mensajes..."):
-                    results = []
-                    progress_bar = st.progress(0)
-                    status_placeholder = st.empty()
+                # Procesar mensajes con lotes mejorados
+                st.subheader("🔄 Procesando Mensajes...")
+                
+                with st.container():
+                    st.markdown("""
+                    <div class="progress-container">
+                        <h4>⚡ Análisis en Progreso</h4>
+                        <p>Procesando mensajes en lotes para optimizar el rendimiento...</p>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    for i, (timestamp, sender, message) in enumerate(messages):
-                        # Actualizar progreso
-                        progress = (i + 1) / len(messages)
-                        progress_bar.progress(progress)
-                        status_placeholder.text(f"Procesando mensaje {i+1}/{len(messages)}: {sender}")
-                        
-                        # Analizar mensaje
-                        risk, label, words, analysis_details, explanation = analyzer.analyze_message(
-                            message, sender, timestamp, config, dictionary, detection_type
-                        )
-                        
-                        results.append({
-                            'timestamp': timestamp,
-                            'sender': sender,
-                            'message': message,
-                            'risk_score': round(risk, 4),
-                            'label': label,
-                            'detected_words': ', '.join(words) if words else "",
-                            'explanation': explanation if show_explanations else ""
-                        })
-                    
-                    progress_bar.empty()
-                    status_placeholder.empty()
+                    results = process_messages_in_batches(
+                        messages, analyzer, config, dictionary, detection_type, batch_size
+                    )
                 
                 # Crear DataFrame de resultados
                 results_df = pd.DataFrame(results)
                 
-                # Mostrar estadísticas principales
+                # Calcular métricas avanzadas
+                advanced_metrics = calculate_advanced_metrics(results_df)
+                alerts = generate_smart_alerts(results_df, detection_type)
+                recommendations = generate_recommendations(results_df, detection_type)
+                
+                # Mostrar alertas si las hay
+                if alerts:
+                    st.subheader("🚨 Alertas del Sistema")
+                    for alert in alerts:
+                        if alert['level'] == 'critical':
+                            st.markdown(f"""
+                            <div class="alert-critical">
+                                <h4>🚨 ALERTA CRÍTICA</h4>
+                                <p>{alert['message']}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        elif alert['level'] == 'warning':
+                            st.markdown(f"""
+                            <div class="alert-warning">
+                                <h4>⚠️ ADVERTENCIA</h4>
+                                <p>{alert['message']}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"""
+                            <div class="alert-info">
+                                <h4>ℹ️ INFORMACIÓN</h4>
+                                <p>{alert['message']}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                
+                # Dashboard de métricas mejorado
                 st.header("📈 Resultados del Análisis")
-                
-                total_messages = len(results_df)
-                detected_messages = len(results_df[results_df['label'] == 'DETECTADO'])
-                percentage = (detected_messages / total_messages) * 100 if total_messages > 0 else 0
-                avg_risk = results_df['risk_score'].mean()
-                max_risk = results_df['risk_score'].max()
-                
-                # Métricas principales
-                col1, col2, col3, col4, col5 = st.columns(5)
-                
-                with col1:
-                    st.metric("📝 Total Mensajes", total_messages)
-                
-                with col2:
-                    st.metric(
-                        "🚨 Detectados", 
-                        detected_messages,
-                        delta=f"{percentage:.1f}%" if percentage > 0 else None
-                    )
-                
-                with col3:
-                    # Color según porcentaje
-                    color = "🟢" if percentage < 5 else "🟡" if percentage < 15 else "🔴"
-                    st.metric(f"{color} Porcentaje", f"{percentage:.2f}%")
-                
-                with col4:
-                    st.metric("⚖️ Riesgo Promedio", f"{avg_risk:.3f}")
-                
-                with col5:
-                    st.metric("📊 Riesgo Máximo", f"{max_risk:.3f}")
+                create_enhanced_metric_dashboard(results_df)
                 
                 # Evaluación del riesgo general
+                detected_count = len(results_df[results_df['label'] == 'DETECTADO'])
+                percentage = (detected_count / len(results_df)) * 100 if len(results_df) > 0 else 0
+                
                 if percentage == 0:
                     st.success("✅ **Excelente**: No se detectaron patrones problemáticos")
                 elif percentage < 5:
@@ -1471,12 +1856,12 @@ jefe,contexto_laboral""")
                 else:
                     st.error("🔴 **Alto Riesgo**: Múltiples detecciones, requiere atención inmediata")
                 
-                # Mostrar visualizaciones
-                if detected_messages > 0:
-                    st.header("📊 Análisis Visual")
-                    create_visualizations(results_df, detection_type)
+                # Mostrar visualizaciones mejoradas
+                if detected_count > 0:
+                    st.header("📊 Análisis Visual Avanzado")
+                    create_enhanced_visualizations(results_df, detection_type)
                     
-                    # Análisis por remitente
+                    # Análisis por remitente mejorado
                     st.subheader("👥 Análisis por Remitente")
                     sender_stats = results_df.groupby('sender').agg({
                         'risk_score': ['count', 'mean', 'max'],
@@ -1490,27 +1875,29 @@ jefe,contexto_laboral""")
                         sender_stats,
                         use_container_width=True,
                         column_config={
-                            "Total Mensajes": st.column_config.NumberColumn("📝 Total"),
+                            "Total Mensajes": st.column_config.NumberColumn("📱 Total"),
                             "Riesgo Promedio": st.column_config.NumberColumn("⚖️ Promedio", format="%.3f"),
                             "Riesgo Máximo": st.column_config.NumberColumn("📊 Máximo", format="%.3f"),
                             "Detecciones": st.column_config.NumberColumn("🚨 Detectados")
                         }
                     )
                     
-                    # Mostrar evidencias
-                    st.header("🔍 Evidencias Encontradas")
+                    # TABLA MEJORADA DE DETECCIONES - CARACTERÍSTICA PRINCIPAL
+                    st.header("🔍 Tabla de Detecciones Mejorada")
                     
                     detected_df = results_df[results_df['label'] == 'DETECTADO'].copy()
                     detected_df = detected_df.sort_values('risk_score', ascending=False)
                     
-                    # Filtros
+                    # Filtros dinámicos para la tabla
                     col1, col2, col3 = st.columns(3)
                     
                     with col1:
+                        available_senders = detected_df['sender'].unique().tolist()
                         sender_filter = st.multiselect(
                             "👤 Filtrar por remitente:",
-                            options=detected_df['sender'].unique(),
-                            default=detected_df['sender'].unique()
+                            options=available_senders,
+                            default=available_senders,
+                            help="Selecciona remitentes específicos"
                         )
                     
                     with col2:
@@ -1519,17 +1906,18 @@ jefe,contexto_laboral""")
                             min_value=0.0,
                             max_value=1.0,
                             value=config['threshold'],
-                            step=0.05
+                            step=0.05,
+                            help="Filtrar por nivel de riesgo"
                         )
                     
                     with col3:
                         word_filter = st.text_input(
                             "🔍 Buscar palabra:",
-                            placeholder="Ej: sexy, amor...",
+                            placeholder="Ej: sexy, amor, secreto...",
                             help="Busca mensajes que contengan esta palabra"
                         )
                     
-                    # Aplicar filtros
+                    # Aplicar filtros a la tabla
                     filtered_df = detected_df[
                         (detected_df['sender'].isin(sender_filter)) &
                         (detected_df['risk_score'] >= risk_threshold)
@@ -1541,89 +1929,20 @@ jefe,contexto_laboral""")
                             filtered_df['detected_words'].str.contains(word_filter, case=False, na=False)
                         ]
                     
-                    # Limitar resultados
-                    if max_results != "Todas":
-                        filtered_df = filtered_df.head(max_results)
+                    # Mostrar tabla mejorada
+                    max_table_results = max_results if max_results != "Todas" else len(filtered_df)
+                    create_enhanced_detections_table(
+                        filtered_df, 
+                        show_explanations=show_explanations, 
+                        max_results=max_table_results
+                    )
                     
-                    st.info(f"📊 Mostrando {len(filtered_df)} evidencias de {len(detected_df)} total")
-                    
-                    # Mostrar evidencias
-                    for idx, row in filtered_df.iterrows():
-                        # Determinar nivel de riesgo para el color
-                        if row['risk_score'] > 0.8:
-                            risk_class = "high"
-                            risk_emoji = "🔴"
-                            risk_text = "ALTO"
-                        elif row['risk_score'] > 0.6:
-                            risk_class = "medium" 
-                            risk_emoji = "🟡"
-                            risk_text = "MEDIO"
-                        else:
-                            risk_class = "low"
-                            risk_emoji = "🟢"
-                            risk_text = "BAJO"
-                        
-                        # Badge del tipo de detección
-                        badge_class = {
-                            "Acoso Sexual": "badge-acoso",
-                            "CyberBullying": "badge-bullying", 
-                            "Infidelidades": "badge-infidelidad"
-                        }.get(detection_type, "badge-acoso")
-                        
-                        with st.container():
-                            st.markdown(f"""
-                            <div class="evidence-card risk-{risk_class}">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                    <div>
-                                        <strong style="font-size: 1.1em;">👤 {row['sender']}</strong>
-                                        <span class="detection-badge {badge_class}">{detection_type}</span>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <span style="color: #666; font-size: 0.9em;">📅 {row['timestamp']}</span><br>
-                                        <span style="font-weight: bold; color: {'#dc3545' if risk_class=='high' else '#ffc107' if risk_class=='medium' else '#28a745'};">
-                                            {risk_emoji} RIESGO {risk_text}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="chat-message" style="margin: 15px 0;">
-                                    💬 <em>"{row['message']}"</em>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                                    <div>
-                                        <strong>⚖️ Puntuación de Riesgo:</strong><br>
-                                        <span style="font-size: 1.2em; font-weight: bold; color: {'#dc3545' if risk_class=='high' else '#ffc107' if risk_class=='medium' else '#28a745'};">
-                                            {row['risk_score']:.3f}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <strong>🎯 Términos Detectados:</strong><br>
-                                        <span style="color: #e74c3c; font-weight: bold;">
-                                            {row['detected_words'] if row['detected_words'] else 'N/A'}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                {f'''
-                                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                                    <strong>🧠 Análisis Detallado:</strong><br>
-                                    <span style="color: #555; font-style: italic;">{row['explanation']}</span>
-                                </div>
-                                ''' if show_explanations and row['explanation'] else ''}
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    if len(filtered_df) == 0:
-                        st.info("🔍 No se encontraron evidencias con los filtros actuales")
-                        
                 else:
                     st.success("✅ **¡Excelente noticia!** No se detectaron patrones sospechosos en la conversación")
                     
-                    # Mostrar algunas estadísticas básicas aunque no haya detecciones
+                    # Mostrar estadísticas básicas aunque no haya detecciones
                     st.subheader("📊 Estadísticas Generales")
                     
-                    # Distribución de remitentes
                     sender_counts = results_df['sender'].value_counts()
                     if len(sender_counts) > 1:
                         fig_senders = px.bar(
@@ -1639,14 +1958,69 @@ jefe,contexto_laboral""")
                         )
                         st.plotly_chart(fig_senders, use_container_width=True)
                 
-                # Opción de descarga de resultados
+                # Mostrar métricas avanzadas si están disponibles
+                if advanced_metrics:
+                    st.subheader("📊 Métricas Avanzadas")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        if 'peak_risk_hour' in advanced_metrics:
+                            st.metric(
+                                "🕐 Hora de Mayor Riesgo", 
+                                f"{advanced_metrics['peak_risk_hour']}:00",
+                                help="Hora del día con mayor actividad de riesgo"
+                            )
+                    
+                    with col2:
+                        if 'risk_trend' in advanced_metrics:
+                            trend_emoji = "📈" if advanced_metrics['risk_trend'] == 'increasing' else "📉"
+                            st.metric(
+                                f"{trend_emoji} Tendencia de Riesgo", 
+                                advanced_metrics['risk_trend'].title(),
+                                help="Tendencia del riesgo a lo largo del tiempo"
+                            )
+                    
+                    with col3:
+                        if 'top_risk_words' in advanced_metrics and advanced_metrics['top_risk_words']:
+                            top_word = list(advanced_metrics['top_risk_words'].keys())[0]
+                            top_count = advanced_metrics['top_risk_words'][top_word]
+                            st.metric(
+                                "🔍 Palabra Más Frecuente", 
+                                f"{top_word} ({top_count}x)",
+                                help="Término más detectado en el análisis"
+                            )
+                
+                # Mostrar recomendaciones
+                if recommendations:
+                    st.subheader("💡 Recomendaciones del Sistema")
+                    
+                    for i, rec in enumerate(recommendations):
+                        st.markdown(f"""
+                        <div class="recommendation-box">
+                            <strong>{i+1}.</strong> {rec}
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                # Sección de descarga mejorada
                 st.header("💾 Descargar Resultados")
                 
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
-                    # CSV completo
+                    # CSV completo mejorado
                     csv_buffer = io.StringIO()
+                    
+                    # Agregar metadatos al CSV
+                    csv_buffer.write(f"# WhatsApp Analyzer v5.0 - Análisis Completo\n")
+                    csv_buffer.write(f"# Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    csv_buffer.write(f"# Tipo: {detection_type}\n")
+                    csv_buffer.write(f"# Total Mensajes: {len(results_df)}\n")
+                    csv_buffer.write(f"# Detecciones: {detected_count}\n")
+                    csv_buffer.write(f"# Porcentaje: {percentage:.2f}%\n")
+                    csv_buffer.write(f"# Umbral: {config['threshold']:.3f}\n")
+                    csv_buffer.write("#\n")
+                    
                     results_df.to_csv(csv_buffer, index=False, encoding='utf-8')
                     csv_data = csv_buffer.getvalue()
                     
@@ -1657,13 +2031,22 @@ jefe,contexto_laboral""")
                         data=csv_data,
                         file_name=filename,
                         mime="text/csv",
-                        help="Incluye todos los mensajes analizados"
+                        help="Incluye todos los mensajes analizados con metadatos"
                     )
                 
                 with col2:
-                    # Solo detecciones
-                    if detected_messages > 0:
+                    # Solo detecciones mejorado
+                    if detected_count > 0:
                         detected_csv = io.StringIO()
+                        
+                        # Metadatos para detecciones
+                        detected_csv.write(f"# WhatsApp Analyzer v5.0 - Solo Detecciones\n")
+                        detected_csv.write(f"# Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                        detected_csv.write(f"# Tipo: {detection_type}\n")
+                        detected_csv.write(f"# Detecciones: {detected_count}\n")
+                        detected_csv.write(f"# Umbral: {config['threshold']:.3f}\n")
+                        detected_csv.write("#\n")
+                        
                         detected_df.to_csv(detected_csv, index=False, encoding='utf-8')
                         detected_data = detected_csv.getvalue()
                         
@@ -1680,66 +2063,252 @@ jefe,contexto_laboral""")
                         st.info("📊 No hay detecciones para descargar")
                 
                 with col3:
-                    # Reporte resumen
-                    report_data = f"""REPORTE DE ANÁLISIS - {detection_type.upper()}
-=====================================
+                    # Reporte ejecutivo mejorado
+                    report_data = f"""REPORTE EJECUTIVO - WHATSAPP ANALYZER V5.0
+=========================================================
 Fecha de análisis: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 Archivo analizado: {uploaded_file.name}
 Tipo de detección: {detection_type}
 Sensibilidad: {sensitivity}
 Umbral usado: {config['threshold']:.3f}
 
-ESTADÍSTICAS GENERALES:
-- Total de mensajes: {total_messages}
-- Mensajes detectados: {detected_messages}
+RESUMEN EJECUTIVO:
+{"="*50}
+- Total de mensajes analizados: {len(results_df):,}
+- Mensajes detectados: {detected_count:,}
 - Porcentaje de detección: {percentage:.2f}%
-- Riesgo promedio: {avg_risk:.4f}
-- Riesgo máximo: {max_risk:.4f}
+- Riesgo promedio: {results_df['risk_score'].mean():.4f}
+- Riesgo máximo encontrado: {results_df['risk_score'].max():.4f}
+
+EVALUACIÓN DE RIESGO:
+{"="*50}
+{"CRÍTICO - Requiere atención inmediata" if percentage > 30 else
+ "ALTO - Revisar cuidadosamente" if percentage > 15 else
+ "MODERADO - Monitoreo recomendado" if percentage > 5 else
+ "BAJO - Situación controlada" if percentage > 0 else
+ "MÍNIMO - No se detectaron problemas"}
 
 ANÁLISIS POR REMITENTE:
-{sender_stats.to_string() if detected_messages > 0 else 'No hay detecciones'}
+{"="*50}
+{results_df.groupby('sender').agg({
+    'risk_score': ['count', 'mean', 'max'],
+    'label': lambda x: (x == 'DETECTADO').sum()
+}).to_string() if len(results_df) > 0 else 'No hay datos'}
 
-TECNOLOGÍAS USADAS:
-- spaCy: {'Disponible' if SPACY_AVAILABLE else 'No disponible'}
-- TextBlob: {'Disponible' if TEXTBLOB_AVAILABLE else 'No disponible'}
-- Análisis inteligente: Activado
+ALERTAS DEL SISTEMA:
+{"="*50}
+{chr(10).join([f"- {alert['message']}" for alert in alerts]) if alerts else "No hay alertas críticas"}
+
+RECOMENDACIONES:
+{"="*50}
+{chr(10).join([f"- {rec}" for rec in recommendations]) if recommendations else "No hay recomendaciones específicas"}
+
+MÉTRICAS AVANZADAS:
+{"="*50}
+{"- Hora de mayor riesgo: " + str(advanced_metrics.get('peak_risk_hour', 'N/A')) + ":00" if 'peak_risk_hour' in advanced_metrics else ""}
+{"- Tendencia de riesgo: " + advanced_metrics.get('risk_trend', 'N/A').title() if 'risk_trend' in advanced_metrics else ""}
+{"- Palabras más frecuentes: " + str(list(advanced_metrics.get('top_risk_words', {}).keys())[:3]) if 'top_risk_words' in advanced_metrics else ""}
+
+TECNOLOGÍAS UTILIZADAS:
+{"="*50}
+- Motor de análisis: WhatsApp Analyzer v5.0 Enhanced
+- spaCy NLP: {'Disponible' if SPACY_AVAILABLE else 'No disponible'}
+- TextBlob Sentimientos: {'Disponible' if TEXTBLOB_AVAILABLE else 'No disponible'}
+- Análisis contextual: Activado
 - Detección de patrones: Activada
+- Procesamiento en lotes: Activado ({batch_size} mensajes por lote)
 
-Este reporte fue generado automáticamente por WhatsApp Analyzer v4.5
+CONFIGURACIÓN UTILIZADA:
+{"="*50}
+- Diccionario: {detection_type}
+- Términos de alto riesgo: {len(dictionary.get('high_risk', []))}
+- Términos de riesgo medio: {len(dictionary.get('medium_risk', []))}
+- Frases de contexto: {len(dictionary.get('context_phrases', []))}
+- Contexto laboral: {len(dictionary.get('work_context', []))}
+
+DISCLAIMER LEGAL:
+{"="*50}
+Este reporte fue generado automáticamente por WhatsApp Analyzer v5.0
+y debe ser utilizado únicamente como herramienta de apoyo. Los resultados
+requieren validación manual y no constituyen evidencia legal definitiva.
+El uso de esta herramienta debe cumplir con las leyes locales de privacidad
+y protección de datos.
+
+Procesamiento realizado 100% localmente - Sin envío de datos externos
 """
                     
-                    filename_report = f"reporte_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    filename_report = f"reporte_ejecutivo_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
                     
                     st.download_button(
-                        label="📋 Descargar Reporte Resumen (TXT)",
+                        label="📋 Descargar Reporte Ejecutivo (TXT)",
                         data=report_data,
                         file_name=filename_report,
                         mime="text/plain",
-                        help="Reporte ejecutivo con estadísticas principales"
+                        help="Reporte ejecutivo completo con análisis y recomendaciones"
                     )
+                
+                # Información adicional sobre los archivos
+                st.info("""
+                📁 **Información sobre las descargas:**
+                - **CSV Completo**: Incluye todos los mensajes con puntuaciones y metadatos
+                - **CSV Detecciones**: Solo mensajes detectados para revisión rápida  
+                - **Reporte Ejecutivo**: Resumen profesional con recomendaciones y análisis
+                """)
             
             except Exception as e:
                 st.error(f"❌ **Error al procesar el archivo:**\n\n{str(e)}")
+                logger.error(f"Error en análisis: {str(e)}")
                 st.info("""
                 💡 **Posibles soluciones:**
                 - Verifica que el archivo sea una exportación válida de WhatsApp
                 - Asegúrate de que el archivo no esté corrupto
                 - Intenta con un chat más pequeño para probar
                 - Verifica que el archivo tenga la codificación correcta (UTF-8)
+                - Revisa que el formato de fecha sea compatible
                 """)
     
-    # Footer con información importante
+    # Footer mejorado con información importante
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #666; padding: 20px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-radius: 10px; margin-top: 2rem;">
-        <h4>🔒 Privacidad y Seguridad</h4>
-        <p><strong>✅ Procesamiento 100% Local:</strong> Todos los archivos se procesan en tu navegador. No se envían datos a servidores externos.</p>
-        <p><strong>🗑️ Sin Almacenamiento:</strong> No guardamos ninguna conversación ni archivo. Todo se elimina al cerrar la aplicación.</p>
-        <p><strong>⚖️ Uso Responsable:</strong> Esta herramienta debe usarse únicamente con fines legítimos y respetando la privacidad y leyes locales.</p>
-        <p><strong>🔬 Herramienta de Apoyo:</strong> Los resultados requieren validación manual y no constituyen evidencia legal definitiva.</p>
-        <small><em>WhatsApp Analyzer v4.5 - Optimizado para Streamlit Cloud</em></small>
+        <h4>🔒 Privacidad y Seguridad - WhatsApp Analyzer v5.0</h4>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+            <div>
+                <h5>✅ Procesamiento 100% Local</h5>
+                <p>Todos los archivos se procesan en tu navegador. No se envían datos a servidores externos.</p>
+            </div>
+            <div>
+                <h5>🗑️ Sin Almacenamiento</h5>
+                <p>No guardamos ninguna conversación ni archivo. Todo se elimina al cerrar la aplicación.</p>
+            </div>
+            <div>
+                <h5>⚖️ Uso Responsable</h5>
+                <p>Esta herramienta debe usarse únicamente con fines legítimos y respetando la privacidad.</p>
+            </div>
+            <div>
+                <h5>🔬 Herramienta de Apoyo</h5>
+                <p>Los resultados requieren validación manual y no constituyen evidencia legal definitiva.</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+            <h5>🆕 Nuevas Características v5.0</h5>
+            <p><strong>📊 Tabla Mejorada</strong> • <strong>⚡ Procesamiento en Lotes</strong> • <strong>🔍 Filtros Avanzados</strong> • <strong>📈 Métricas Avanzadas</strong> • <strong>🎨 Interfaz Optimizada</strong></p>
+        </div>
+        
+        <small><em>WhatsApp Analyzer v5.0 Enhanced Edition - Optimizado para Streamlit Cloud</em></small>
     </div>
     """, unsafe_allow_html=True)
 
+def get_csv_format_instructions():
+    """Retorna las instrucciones del formato CSV actualizadas"""
+    return """
+    ## 📋 **FORMATO DEL ARCHIVO CSV DE DICCIONARIO - v5.0**
+    
+    El archivo CSV debe tener **exactamente 2 columnas** con los siguientes encabezados:
+    
+    ```csv
+    termino,categoria
+    sexy,palabras_alta
+    atractiva,palabras_media
+    solos,frases_contexto
+    jefe,contexto_laboral
+    ```
+    
+    ### **Categorías Válidas:**
+    
+    | Categoría | Descripción | Peso en Análisis | Ejemplos |
+    |-----------|-------------|------------------|----------|
+    | `palabras_alta` | Términos de alto riesgo | ⚠️ **Alto** (0.7-0.8) | sexy, desnudo, sexual |
+    | `palabras_media` | Términos de riesgo medio | ⚡ **Medio** (0.3-0.4) | atractiva, bonita, cariño |
+    | `frases_contexto` | Frases que dan contexto | 🔍 **Contextual** (0.5-0.6) | solos, secreto, privado |
+    | `contexto_laboral` | Términos de trabajo/profesional | 🏢 **Laboral** (0.3-0.5) | jefe, oficina, ascenso |
+    | `contexto_relacion` | Términos de relaciones | ❤️ **Relacional** (0.4) | novio, pareja, matrimonio |
+    | `contexto_financiero` | Términos financieros | 💰 **Financiero** (0.4) | dinero, préstamo, deuda |
+    | `contexto_agresion` | Términos agresivos | 😠 **Agresivo** (0.6) | odio, matar, venganza |
+    | `contexto_emocional` | Expresiones emocionales | 😢 **Emocional** (0.3) | tristeza, alegría, miedo |
+    | `contexto_digital` | Términos digitales/redes | 📱 **Digital** (0.3) | facebook, instagram, viral |
+    | `contexto_sustancias` | Referencias a sustancias | 🚫 **Sustancias** (0.5) | drogas, alcohol, fumar |
+    
+    ### **Ejemplo Completo Mejorado:**
+    ```csv
+    termino,categoria
+    # Términos de alto riesgo
+    sexy,palabras_alta
+    desnudo,palabras_alta
+    sexual,palabras_alta
+    # Términos de riesgo medio
+    hermosa,palabras_media
+    atractiva,palabras_media
+    bonita,palabras_media
+    # Frases de contexto
+    solos,frases_contexto
+    secreto,frases_contexto
+    privado,frases_contexto
+    # Contexto laboral
+    jefe,contexto_laboral
+    oficina,contexto_laboral
+    ascenso,contexto_laboral
+    ```
+    
+    ### **Notas Importantes:**
+    - Líneas que empiecen con `#` son ignoradas (comentarios)
+    - Los términos se procesan en minúsculas automáticamente
+    - No incluir términos duplicados
+    - Usar codificación UTF-8 para caracteres especiales
+    """
+
+# Función para ejecutar tests automatizados
+def run_automated_tests():
+    """Tests automatizados para validar funcionamiento"""
+    try:
+        # Test de parsing de mensajes
+        test_message = "15/01/24, 2:28 p. m. - Juan: Hola, ¿cómo estás?"
+        messages = extract_messages_from_text(test_message)
+        assert len(messages) == 1, "Error en parsing básico"
+        
+        # Test de análisis
+        analyzer = SmartTextAnalyzer()
+        test_dict = {'high_risk': ['test'], 'medium_risk': [], 'context_phrases': [], 'work_context': []}
+        config = {'threshold': 0.5}
+        
+        score, label, words, analysis, explanation = analyzer.analyze_message(
+            "test message", "sender", "timestamp", config, test_dict, "Test"
+        )
+        
+        assert isinstance(score, float), "Score debe ser float"
+        assert label in ['DETECTADO', 'NO DETECTADO'], "Label inválido"
+        
+        st.success("✅ Todos los tests automatizados pasaron correctamente")
+        return True
+        
+    except Exception as e:
+        st.error(f"❌ Error en tests automatizados: {str(e)}")
+        logger.error(f"Error en tests: {str(e)}")
+        return False
+
 if __name__ == "__main__":
-    main()
+    try:
+        # Ejecutar tests automatizados en desarrollo
+        if st.sidebar.button("🧪 Ejecutar Tests Automatizados", help="Ejecuta validaciones del sistema"):
+            with st.spinner("🔍 Ejecutando tests automatizados..."):
+                run_automated_tests()
+        
+        # Ejecutar aplicación principal
+        main()
+        
+    except Exception as e:
+        st.error(f"❌ **Error crítico en la aplicación:**\n\n{str(e)}")
+        logger.critical(f"Error crítico: {str(e)}")
+        st.info("""
+        🔧 **Para reportar este error:**
+        1. Toma una captura de pantalla de este mensaje
+        2. Incluye información sobre el archivo que intentabas analizar
+        3. Describe los pasos que llevaron al error
+        
+        🔄 **Para intentar solucionarlo:**
+        1. Recarga la página (F5)
+        2. Verifica que el archivo sea una exportación válida de WhatsApp
+        3. Intenta con un archivo más pequeño
+        """)
