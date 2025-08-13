@@ -2169,34 +2169,66 @@ Procesamiento realizado 100% localmente - Sin envío de datos externos
     
     # Footer mejorado con información importante
     st.markdown("---")
+    
+    # Usar columnas de Streamlit en lugar de CSS grid
     st.markdown("""
     <div style="text-align: center; color: #666; padding: 20px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-radius: 10px; margin-top: 2rem;">
         <h4>🔒 Privacidad y Seguridad - WhatsApp Analyzer v5.0</h4>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
-            <div>
-                <h5>✅ Procesamiento 100% Local</h5>
-                <p>Todos los archivos se procesan en tu navegador. No se envían datos a servidores externos.</p>
-            </div>
-            <div>
-                <h5>🗑️ Sin Almacenamiento</h5>
-                <p>No guardamos ninguna conversación ni archivo. Todo se elimina al cerrar la aplicación.</p>
-            </div>
-            <div>
-                <h5>⚖️ Uso Responsable</h5>
-                <p>Esta herramienta debe usarse únicamente con fines legítimos y respetando la privacidad.</p>
-            </div>
-            <div>
-                <h5>🔬 Herramienta de Apoyo</h5>
-                <p>Los resultados requieren validación manual y no constituyen evidencia legal definitiva.</p>
-            </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Usar columnas nativas de Streamlit para mejor compatibilidad
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown("""
+        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 10px 5px;">
+            <h5 style="color: #28a745; margin-bottom: 10px;">✅ Procesamiento 100% Local</h5>
+            <p style="font-size: 0.9em; color: #666; margin: 0;">Todos los archivos se procesan en tu navegador. No se envían datos a servidores externos.</p>
         </div>
-        
-        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
-            <h5>🆕 Nuevas Características v5.0</h5>
-            <p><strong>📊 Tabla Mejorada</strong> • <strong>⚡ Procesamiento en Lotes</strong> • <strong>🔍 Filtros Avanzados</strong> • <strong>📈 Métricas Avanzadas</strong> • <strong>🎨 Interfaz Optimizada</strong></p>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 10px 5px;">
+            <h5 style="color: #17a2b8; margin-bottom: 10px;">🗑️ Sin Almacenamiento</h5>
+            <p style="font-size: 0.9em; color: #666; margin: 0;">No guardamos ninguna conversación ni archivo. Todo se elimina al cerrar la aplicación.</p>
         </div>
-        
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 10px 5px;">
+            <h5 style="color: #ffc107; margin-bottom: 10px;">⚖️ Uso Responsable</h5>
+            <p style="font-size: 0.9em; color: #666; margin: 0;">Esta herramienta debe usarse únicamente con fines legítimos y respetando la privacidad.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown("""
+        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 10px 5px;">
+            <h5 style="color: #6f42c1; margin-bottom: 10px;">🔬 Herramienta de Apoyo</h5>
+            <p style="font-size: 0.9em; color: #666; margin: 0;">Los resultados requieren validación manual y no constituyen evidencia legal definitiva.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Sección de nuevas características
+    st.markdown("""
+    <div style="text-align: center; padding: 20px; background: linear-gradient(145deg, #e8f5e8, #d4edda); border-radius: 10px; margin: 20px 0; border: 1px solid #c3e6cb;">
+        <h5 style="color: #155724; margin-bottom: 15px;">🆕 Nuevas Características v5.0</h5>
+        <p style="font-size: 1.1em; margin: 0;">
+            <strong style="color: #28a745;">📊 Tabla Mejorada</strong> • 
+            <strong style="color: #17a2b8;">⚡ Procesamiento en Lotes</strong> • 
+            <strong style="color: #6f42c1;">🔍 Filtros Avanzados</strong> • 
+            <strong style="color: #e83e8c;">📈 Métricas Avanzadas</strong> • 
+            <strong style="color: #fd7e14;">🎨 Interfaz Optimizada</strong>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Footer final
+    st.markdown("""
+    <div style="text-align: center; padding: 15px; color: #6c757d;">
         <small><em>WhatsApp Analyzer v5.0 Enhanced Edition - Optimizado para Streamlit Cloud</em></small>
     </div>
     """, unsafe_allow_html=True)
