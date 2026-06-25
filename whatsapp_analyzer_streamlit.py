@@ -197,6 +197,13 @@ def extract_messages_from_text(content):
     
     return []
 
+# Cantidad de coincidencias a partir de la cual una categoría alcanza su peso máximo
+SATURATION_CAP = 3
+
+def saturating_ratio(matches, cap=SATURATION_CAP):
+    """Convierte una cantidad de coincidencias en una proporción [0, 1], saturando en `cap`"""
+    return min(matches, cap) / cap
+
 def analyze_message(text, sender, config, dictionary):
     """Analiza un mensaje individual"""
     text_lower = text.lower()
@@ -206,12 +213,14 @@ def analyze_message(text, sender, config, dictionary):
     medium_matches = sum(1 for term in dictionary['medium_risk'] if term in text_lower)
     context_matches = sum(1 for phrase in dictionary['context_phrases'] if phrase in text_lower)
     work_matches = sum(1 for term in dictionary['work_context'] if term in text_lower)
-    
-    # Calcular puntuaciones
-    high_score = (high_matches / max(len(dictionary['high_risk']), 1)) * config['high_weight']
-    medium_score = (medium_matches / max(len(dictionary['medium_risk']), 1)) * config['medium_weight']
-    context_score = (context_matches / max(len(dictionary['context_phrases']), 1)) * config['context_weight']
-    work_score = (work_matches / max(len(dictionary['work_context']), 1)) * config['work_weight']
+
+    # Calcular puntuaciones a partir de la cantidad absoluta de coincidencias
+    # (saturando a partir de SATURATION_CAP), nunca del tamaño del diccionario:
+    # un diccionario con 600 términos no debe diluir el riesgo frente a uno de 20.
+    high_score = saturating_ratio(high_matches) * config['high_weight']
+    medium_score = saturating_ratio(medium_matches) * config['medium_weight']
+    context_score = saturating_ratio(context_matches) * config['context_weight']
+    work_score = saturating_ratio(work_matches) * config['work_weight']
     
     # Bonificaciones por combinaciones
     bonus = 0
