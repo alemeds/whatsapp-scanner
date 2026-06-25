@@ -15,6 +15,7 @@ import re
 import csv
 import io
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 import plotly.express as px
 import plotly.graph_objects as go
@@ -258,15 +259,26 @@ def saturating_ratio(matches, cap=SATURATION_CAP):
     """Convierte una cantidad de coincidencias en una proporción [0, 1], saturando en `cap`"""
     return min(matches, cap) / cap
 
+@lru_cache(maxsize=4096)
+def _term_pattern(term):
+    """Compila (y cachea) una regex que matchea el término como palabra completa, no como substring"""
+    return re.compile(r'\b' + re.escape(term) + r'\b')
+
+
+def term_matches(term, text_lower):
+    """True si `term` aparece como palabra completa en el texto (evita 'cama' dentro de 'cámara')"""
+    return _term_pattern(term).search(text_lower) is not None
+
+
 def analyze_message(text, sender, config, dictionary):
     """Analiza un mensaje individual"""
     text_lower = text.lower()
-    
-    # Contar coincidencias
-    high_matches = sum(1 for term in dictionary['high_risk'] if term in text_lower)
-    medium_matches = sum(1 for term in dictionary['medium_risk'] if term in text_lower)
-    context_matches = sum(1 for phrase in dictionary['context_phrases'] if phrase in text_lower)
-    work_matches = sum(1 for term in dictionary['work_context'] if term in text_lower)
+
+    # Contar coincidencias (por palabra completa, no por substring)
+    high_matches = sum(1 for term in dictionary['high_risk'] if term_matches(term, text_lower))
+    medium_matches = sum(1 for term in dictionary['medium_risk'] if term_matches(term, text_lower))
+    context_matches = sum(1 for phrase in dictionary['context_phrases'] if term_matches(phrase, text_lower))
+    work_matches = sum(1 for term in dictionary['work_context'] if term_matches(term, text_lower))
 
     # Calcular puntuaciones a partir de la cantidad absoluta de coincidencias
     # (saturando a partir de SATURATION_CAP), nunca del tamaño del diccionario:
@@ -292,7 +304,7 @@ def analyze_message(text, sender, config, dictionary):
     detected_words = []
     for category, terms in dictionary.items():
         for term in terms:
-            if term in text_lower and term not in detected_words:
+            if term_matches(term, text_lower) and term not in detected_words:
                 detected_words.append(term)
     
     label = "DETECTADO" if risk_score > config['threshold'] else "NO DETECTADO"
