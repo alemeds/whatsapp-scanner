@@ -1,147 +1,196 @@
-# 🔍 Analizador de Conversaciones WhatsApp
+# 🔍 WhatsApp Analyzer
 
-## ¿Qué hace esta aplicación?
+Advanced pattern detection system for WhatsApp conversations. Analyzes exported chats to identify suspicious behaviors through risk-classified term dictionaries.
 
-Aplicación web (Streamlit) que analiza conversaciones exportadas de WhatsApp para detectar patrones específicos mediante diccionarios de términos clasificados por riesgo:
+## 📋 Supported Detection Categories
 
-- **Acoso Sexual**
+- **Sexual Harassment**
 - **Cyberbullying**
-- **Amenazas y Violencia**
-- **Drogas**
-- **Infidelidad**
-- **Malas Palabras (Argentina)**
-- **Robo y Estafas**
-- **Suicidio y Autolesión**
-- **Completo** (todas las categorías combinadas)
+- **Threats and Violence**
+- **Drugs**
+- **Infidelity**
+- **Profanity (Argentina)**
+- **Theft and Fraud**
+- **Suicide and Self-Harm**
+- **Complete** (all categories combined)
 
-Estas categorías se pueden combinar entre sí, y además se les pueden sumar términos puntuales propios.
+Categories can be combined and extended with custom terms.
 
-## 🚀 Instalación
+## 🚀 Installation
 
-### Requisitos
+### Requirements
+
 - Python 3.9+
 
-### Pasos
+### Setup
+
 ```bash
-git clone <url-del-repositorio>
-cd whatsapp_analyzer_streamlit
+git clone <repository-url>
+cd whatsapp-scanner
 python3 -m venv .venv
-source .venv/bin/activate          # En Windows: .venv\Scripts\activate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Ejecutar la aplicación
+### Run the Application
+
 ```bash
 streamlit run whatsapp_analyzer_streamlit.py
 ```
 
-La app abre automáticamente en `http://localhost:8501`.
+App opens automatically at `http://localhost:8501`.
 
-## 📱 Cómo exportar chats de WhatsApp
+## 📱 Export WhatsApp Chats
 
-### En Android
-1. Abrí WhatsApp
-2. Entrá al chat que querés analizar
-3. Tocá los 3 puntos (⋮) → **Más** → **Exportar chat**
-4. Seleccioná **"Sin archivos multimedia"** ⚠️ **Importante**
-5. Guardá el archivo `.txt`
+### Android
 
-### En iPhone
-1. Abrí WhatsApp
-2. Entrá al chat que querés analizar
-3. Tocá el nombre del contacto/grupo
-4. Deslizá hacia abajo → **Exportar chat**
-5. Seleccioná **"Sin archivos multimedia"** ⚠️ **Importante**
-6. Guardá el archivo `.txt`
+1. Open WhatsApp
+2. Go to the chat you want to analyze
+3. Tap the three dots (⋮) → **More** → **Export chat**
+4. Select **"Without media"** ⚠️ **Important**
+5. Save the `.txt` file
 
-## 🎯 Cómo usar la aplicación
+### iPhone
 
-### 1. Elegir categorías de detección
-En la barra lateral, **"🎯 Tipo(s) de Detección"** es un selector múltiple: podés elegir una o varias categorías predefinidas a la vez (por ejemplo, "Drogas" + "Amenazas y Violencia"). Sus términos se combinan sin duplicarse.
+1. Open WhatsApp
+2. Go to the chat you want to analyze
+3. Tap the contact/group name
+4. Scroll down → **Export chat**
+5. Select **"Without media"** ⚠️ **Important**
+6. Save the `.txt` file
 
-### 2. (Opcional) Agregar términos puntuales
-En **"📁 Agregar Términos Puntuales"** podés subir un `.csv` o `.txt` propio con el formato `término,categoría`. Esos términos se suman a las categorías elegidas en el paso anterior (no las reemplazan). Si no elegís ninguna categoría predefinida, este archivo funciona como diccionario completo.
+## 🎯 Using the Application
 
-### 3. Configurar sensibilidad
-- **Baja** (umbral 0.75): menos falsos positivos, detecta solo casos muy claros
-- **Media** (umbral 0.60): balance entre precisión y detección (recomendado)
-- **Alta** (umbral 0.45): más sensible, puede generar más falsos positivos
+### 1. Select Detection Categories
 
-También se puede definir un **umbral personalizado** (0.0 a 1.0) que reemplaza el de la sensibilidad elegida.
+In the sidebar, **"🎯 Detection Type(s)"** is a multi-select: you can choose one or multiple predefined categories at once (e.g., "Drugs" + "Threats and Violence"). Their terms are combined without duplication.
 
-### 4. Subir el archivo de chat
-Subí el `.txt` exportado de WhatsApp. La app extrae automáticamente fecha, remitente y mensaje de cada línea.
+### 2. (Optional) Add Custom Terms
 
-### 5. Revisar resultados
-- **Estadísticas**: total de mensajes, detecciones, porcentaje, riesgo promedio
-- **Visualizaciones**: distribución de riesgo y detecciones por remitente
-- **Evidencias**: lista filtrable (por remitente y riesgo mínimo) de los mensajes detectados, con los términos que matchearon
+In **"📁 Add Custom Terms"** you can:
+- **Type terms:** Enter names or words separated by commas or line breaks
+- **Upload file:** Upload a `.csv` or `.txt` with format `term,category`
 
-### 6. Descargar reportes
-- **CSV completo**: todos los mensajes con su puntuación
-- **CSV de detecciones**: solo los mensajes marcados como `DETECTADO`
+Custom terms are added to selected categories (don't replace them). If no categories are selected, the custom file works as the complete dictionary.
 
-## 📖 Formato de diccionario personalizado
+### 3. Configure Sensitivity
 
-Archivo `.csv` o `.txt`, una línea por término:
+- **Low** (threshold 0.75): fewer false positives, detects only clear cases
+- **Medium** (threshold 0.60): balanced (recommended)
+- **High** (threshold 0.45): more sensitive, may have more false positives
+
+You can also set a **custom threshold** (0.0 to 1.0) that overrides the sensitivity level.
+
+### 4. Upload Chat File
+
+Upload the `.txt` file you exported. The app automatically extracts date, sender, and message from each line.
+
+### 5. Review Results
+
+- **Statistics:** total messages, detections, percentage, average risk
+- **Visualizations:** risk distribution and detections by sender
+- **Evidence:** filterable list (by sender and minimum risk) of detected messages with matched terms
+
+### 6. Download Reports
+
+- **Complete CSV:** all messages with their scores
+- **Detections CSV:** only messages marked as `DETECTED`
+- **Executive Report:** summary and disclaimer
+
+## 📖 Custom Dictionary Format
+
+`.csv` or `.txt` file, one term per line:
+
 ```
-término,categoría
+term,category
 ```
 
-### Categorías reconocidas
-| Categoría en el archivo | Se clasifica como |
+### Recognized Categories
+
+| File Category | Classification |
 |---|---|
-| `palabras_alta` | Alto riesgo |
-| `palabras_media` | Riesgo medio |
-| `frases_contexto` | Frase de contexto |
-| `contexto_laboral`, `contexto_relacion`, `contexto_financiero`, `contexto_agresion`, `contexto_emocional`, `contexto_digital`, `contexto_sustancias` | Contexto (cualquiera de estas) |
+| `palabras_alta` | High risk |
+| `palabras_media` | Medium risk |
+| `frases_contexto` | Context phrase |
+| `contexto_laboral`, `contexto_relacion`, `contexto_financiero`, `contexto_agresion`, `contexto_emocional`, `contexto_digital`, `contexto_sustancias` | Context (any of these) |
 
-Las líneas vacías y las que empiezan con `#` se ignoran (sirven como comentarios).
+Empty lines and lines starting with `#` are ignored (useful for comments).
 
-### Ejemplo
+### Example
+
 ```csv
-# Diccionario para detectar bullying escolar
-tonto,palabras_alta
-idiota,palabras_alta
-nadie te quiere,frases_contexto
-colegio,contexto_digital
+# School bullying dictionary
+stupid,palabras_alta
+idiot,palabras_alta
+nobody likes you,frases_contexto
+school,contexto_digital
 ```
 
-## ⚙️ Cómo se calcula el riesgo
+## ⚙️ Risk Calculation
 
-Por cada mensaje se cuentan las coincidencias en cada categoría (alto riesgo, riesgo medio, frases de contexto, contexto). Esa cantidad se convierte en una proporción que **satura al llegar a 3 coincidencias** (no depende del tamaño del diccionario), se multiplica por el peso de la categoría según la sensibilidad elegida, y se suman bonificaciones cuando se combinan alto riesgo + contexto o alto riesgo + contexto laboral. El resultado final es un valor entre 0.0 y 1.0.
+For each message, the app counts matches in each category (high risk, medium risk, context phrases, context). That count is converted to a ratio that **saturates at 3 matches** (independent of dictionary size), multiplied by the category weight according to sensitivity, and summed with bonuses when high-risk + context or high-risk + work context combine. The final result is between 0.0 and 1.0.
 
-Un mensaje se marca `DETECTADO` cuando su puntuación supera el umbral configurado.
+A message is marked `DETECTED` when its score exceeds the configured threshold.
 
-## 🛡️ Consideraciones legales y éticas
+## 🛡️ Legal and Ethical Considerations
 
-- Obtené consentimiento antes de analizar conversaciones privadas de terceros.
-- Respetá las leyes de privacidad locales.
-- Usalo solo para fines legítimos (investigación, seguridad, protección).
-- Todos los archivos se procesan localmente, en memoria — la app no persiste datos en disco ni los envía a servidores externos.
-- Los resultados son indicativos, no pruebas definitivas: pueden ocurrir falsos positivos y falsos negativos. Verificá siempre las evidencias manualmente.
+- Obtain consent before analyzing private conversations of others
+- Respect local privacy laws
+- Use only for legitimate purposes (research, safety, protection)
+- All files are processed locally in memory — the app doesn't persist data on disk or send it to external servers
+- Results are indicative, not definitive proof: false positives and false negatives can occur. Always verify evidence manually
 
-## 🔧 Solución de problemas
+## 🔧 Troubleshooting
 
-**El archivo no se carga / no se extraen mensajes:**
-- Verificá que sea un `.txt` exportado de WhatsApp con la opción "Sin archivos multimedia".
-- El formato esperado por línea es similar a `12/06/24, 10:30 a. m. - Nombre: mensaje` (o variantes con corchetes/AM-PM).
-- Por diseño, se requieren más de 5 mensajes para que la app reconozca el patrón de exportación.
+**File not loading / messages not extracting:**
+- Verify it's a `.txt` file exported from WhatsApp with "Without media" option
+- Expected format per line: similar to `12/06/24, 10:30 a. m. - Name: message` (or variants with brackets/AM-PM)
+- By design, the app requires 5+ messages to recognize the export pattern
 
-**Muchos falsos positivos:**
-- Bajá la sensibilidad a "Baja" o subí el umbral personalizado.
+**Many false positives:**
+- Lower sensitivity to "Low" or increase custom threshold
 
-**Pocos resultados:**
-- Subí la sensibilidad a "Alta" o bajá el umbral personalizado.
-- Revisá que las categorías elegidas (o tu diccionario puntual) incluyan los términos relevantes.
+**Few results:**
+- Raise sensitivity to "High" or lower custom threshold
+- Check that selected categories (or custom dictionary) include relevant terms
 
-## 🆘 Recursos en casos de riesgo suicida
+## 🆘 Crisis Resources
 
 - 🚨 **Argentina**: 135 (Centro de Asistencia al Suicida)
 - 🚨 **México**: 800-290-0024 (SAPTEL)
 - 🚨 **España**: 717-003-717 (Teléfono de la Esperanza)
 - 🚨 **Chile**: 4141 (Salud Responde)
 
+## 📁 Project Structure
+
+```
+whatsapp-scanner/
+├── src/
+│   ├── __init__.py
+│   ├── parser.py          # Message extraction and parsing
+│   ├── dictionary.py      # Dictionary loading and merging
+│   ├── analyzer.py        # Risk scoring
+│   └── ui.py              # UI helpers
+├── data/                  # Predefined dictionaries
+├── scripts/
+│   └── convert_dictionaries.py
+├── tests/                 # Unit tests
+├── whatsapp_analyzer_streamlit.py  # Main application
+├── requirements.txt
+└── README.md
+```
+
+## 🧪 Running Tests
+
+```bash
+pip install pytest
+python -m pytest tests/ -v
+```
+
+## 🔒 Privacy
+
+All files are processed locally in memory. No data is stored or transmitted to external servers. Your results are yours alone.
+
 ---
 
-*Este software se proporciona con fines educativos y de investigación. El usuario es responsable del uso ético y legal de la herramienta.*
+**This software is provided for educational and research purposes. The user is responsible for ethical and legal use of the tool.**
