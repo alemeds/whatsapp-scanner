@@ -612,6 +612,8 @@ def main():
             dates, senders = extract_dates_and_senders(messages)
 
             # Inicializar session_state para los filtros si no existen
+            if "use_date_filter" not in st.session_state:
+                st.session_state.use_date_filter = False
             if "filter_date_from" not in st.session_state:
                 st.session_state.filter_date_from = dates[0] if dates else None
             if "filter_date_to" not in st.session_state:
@@ -624,23 +626,32 @@ def main():
                 # Filtro de fechas
                 if dates:
                     st.write("**Rango de Fechas**")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.session_state.filter_date_from = st.date_input(
-                            "Desde",
-                            value=st.session_state.filter_date_from,
-                            min_value=dates[0],
-                            max_value=dates[-1],
-                            key="date_from_input"
-                        )
-                    with col2:
-                        st.session_state.filter_date_to = st.date_input(
-                            "Hasta",
-                            value=st.session_state.filter_date_to,
-                            min_value=dates[0],
-                            max_value=dates[-1],
-                            key="date_to_input"
-                        )
+                    st.session_state.use_date_filter = st.checkbox(
+                        "🗓️ Filtrar por rango de fechas",
+                        value=st.session_state.use_date_filter,
+                        key="use_date_filter_input"
+                    )
+
+                    if st.session_state.use_date_filter:
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.session_state.filter_date_from = st.date_input(
+                                "Desde",
+                                value=st.session_state.filter_date_from,
+                                min_value=dates[0],
+                                max_value=dates[-1],
+                                key="date_from_input"
+                            )
+                        with col2:
+                            st.session_state.filter_date_to = st.date_input(
+                                "Hasta",
+                                value=st.session_state.filter_date_to,
+                                min_value=dates[0],
+                                max_value=dates[-1],
+                                key="date_to_input"
+                            )
+                    else:
+                        st.info("📅 Analizando TODO el período del chat")
 
                 # Filtro de remitentes
                 if senders:
@@ -655,7 +666,7 @@ def main():
             # Aplicar filtros a los mensajes
             messages_filtered = messages
 
-            if dates and st.session_state.filter_date_from and st.session_state.filter_date_to:
+            if st.session_state.use_date_filter and dates and st.session_state.filter_date_from and st.session_state.filter_date_to:
                 messages_filtered = [
                     (ts, sender, msg) for ts, sender, msg in messages_filtered
                     if (parse_whatsapp_date(ts.split()[0]) and
