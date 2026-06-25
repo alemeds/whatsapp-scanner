@@ -196,7 +196,7 @@ def main():
             if "filter_senders" not in st.session_state:
                 st.session_state.filter_senders = senders if senders else []
 
-            with st.sidebar.expander("🔍 Advanced Filters (Optional)", expanded=False):
+            with st.sidebar.expander("🔍 Advanced Filters (Optional)", expanded=True):
                 if dates:
                     st.write("**Date Range**")
                     st.session_state.use_date_filter = st.checkbox(
@@ -238,11 +238,12 @@ def main():
             messages_filtered = messages
 
             if st.session_state.use_date_filter and dates and st.session_state.filter_date_from and st.session_state.filter_date_to:
-                messages_filtered = [
-                    (ts, sender, msg) for ts, sender, msg in messages_filtered
-                    if (parse_whatsapp_date(ts.split()[0]) and
-                        st.session_state.filter_date_from <= parse_whatsapp_date(ts.split()[0]) <= st.session_state.filter_date_to)
-                ]
+                filtered_messages = []
+                for ts, sender, msg in messages_filtered:
+                    msg_date = parse_whatsapp_date(ts.split()[0])
+                    if msg_date and st.session_state.filter_date_from <= msg_date <= st.session_state.filter_date_to:
+                        filtered_messages.append((ts, sender, msg))
+                messages_filtered = filtered_messages
 
             if st.session_state.filter_senders:
                 messages_filtered = [
