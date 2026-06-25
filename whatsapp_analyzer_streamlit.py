@@ -51,17 +51,6 @@ st.markdown("""
         padding: 1rem;
         margin: 1rem 0;
     }
-    .evidence-card {
-        background: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .risk-high { border-left: 4px solid #dc3545; }
-    .risk-medium { border-left: 4px solid #ffc107; }
-    .risk-low { border-left: 4px solid #28a745; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -181,21 +170,52 @@ def merge_dictionaries(dictionaries):
 
     return merged
 
+def validate_whatsapp_file(content):
+    """Valida si el contenido parece una exportación de WhatsApp antes de procesarlo"""
+    pattern = r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}.*\d{1,2}:\d{2}.*-.*:'
+    total_lines = len(content.split('\n'))
+    matches = len(re.findall(pattern, content))
+    confidence = matches / max(total_lines, 1)
+
+    if confidence > 0.1:
+        return True, f"Formato WhatsApp detectado (confianza: {confidence:.0%})"
+    return False, f"No parece ser un archivo de WhatsApp válido (confianza: {confidence:.0%})"
+
+
+# Mensajes de sistema de WhatsApp a ignorar (frases completas, no palabras sueltas,
+# para no descartar mensajes reales que contengan alguna de estas palabras)
+SYSTEM_MESSAGES = [
+    '<multimedia omitido>', '<media omitted>',
+    'se unió usando el enlace de invitación del grupo',
+    'cambió el asunto del grupo a', 'eliminó este mensaje',
+    'este mensaje fue eliminado', 'los mensajes y las llamadas están cifrados',
+    'changed the subject to', 'this message was deleted',
+]
+
+
 def extract_messages_from_text(content):
-    """Extrae mensajes de texto de WhatsApp"""
+    """Extrae mensajes de texto de WhatsApp, eligiendo el patrón que más coincidencias produce"""
     patterns = [
         r'(\d{1,2}/\d{1,2}/\d{2},\s\d{1,2}:\d{2}\s[ap]\.\sm\.)\s-\s([^:]+):\s(.+)',
         r'\[(\d{1,2}/\d{1,2}/\d{2,4}(?:,|\s)\s\d{1,2}:\d{2}(?::\d{2})?(?:\s[APap][Mm])?)\]\s([^:]+):\s(.+)',
         r'(\d{1,2}/\d{1,2}/\d{2,4}\s\d{1,2}:\d{2}(?:\s[APap][Mm])?)\s-\s([^:]+):\s(.+)',
         r'(\d{1,2}/\d{1,2}/\d{4},\s\d{1,2}:\d{2})\s-\s([^:]+):\s(.+)'
     ]
-    
+
+    best_matches = []
     for pattern in patterns:
         matches = re.findall(pattern, content, re.MULTILINE)
-        if matches and len(matches) > 5:
-            return [(m[0].strip(), m[1].strip(), m[2].strip()) for m in matches]
-    
-    return []
+        if len(matches) > len(best_matches):
+            best_matches = matches
+
+    messages = []
+    for timestamp, sender, message in best_matches:
+        message = message.strip()
+        if not message or any(sys_msg in message.lower() for sys_msg in SYSTEM_MESSAGES):
+            continue
+        messages.append((timestamp.strip(), sender.strip(), message))
+
+    return messages
 
 # Cantidad de coincidencias a partir de la cual una categoría alcanza su peso máximo
 SATURATION_CAP = 3
@@ -243,6 +263,28 @@ def analyze_message(text, sender, config, dictionary):
     
     label = "DETECTADO" if risk_score > config['threshold'] else "NO DETECTADO"
     return risk_score, label, detected_words
+
+def generate_smart_alerts(results_df):
+    """Genera alertas basadas en la frecuencia de detecciones y su concentración por remitente"""
+    alerts = []
+    detected_df = results_df[results_df['label'] == 'DETECTADO']
+
+    if len(detected_df) == 0:
+        return alerts
+
+    detection_rate = len(detected_df) / len(results_df)
+    if detection_rate > 0.3:
+        alerts.append(('error', f"⚠️ CRÍTICO: {len(detected_df)} detecciones de {len(results_df)} mensajes ({detection_rate:.1%})"))
+    elif detection_rate > 0.15:
+        alerts.append(('warning', f"🔔 ADVERTENCIA: {len(detected_df)} detecciones de {len(results_df)} mensajes ({detection_rate:.1%})"))
+
+    sender_counts = detected_df['sender'].value_counts()
+    dominant_pct = sender_counts.iloc[0] / len(detected_df)
+    if dominant_pct > 0.7:
+        alerts.append(('info', f"👤 REMITENTE DOMINANTE: {sender_counts.index[0]} concentra el {dominant_pct:.1%} de las detecciones"))
+
+    return alerts
+
 
 def create_visualizations(results_df, detection_type):
     """Crea visualizaciones de los resultados"""
@@ -370,14 +412,21 @@ def main():
         try:
             # Leer contenido del archivo
             content = uploaded_file.read().decode('utf-8')
-            
+
+            # Validar formato antes de procesar
+            is_valid, validation_message = validate_whatsapp_file(content)
+            if not is_valid:
+                st.error(f"❌ {validation_message}")
+                return
+            st.success(f"✅ {validation_message}")
+
             # Extraer mensajes
             messages = extract_messages_from_text(content)
-            
+
             if not messages:
                 st.error("❌ No se pudieron extraer mensajes del archivo. Verifica que sea una exportación válida de WhatsApp.")
                 return
-            
+
             st.success(f"✅ Se encontraron {len(messages)} mensajes")
             
             # Configurar análisis
@@ -434,7 +483,11 @@ def main():
             with col4:
                 avg_risk = results_df['risk_score'].mean()
                 st.metric("⚖️ Riesgo Promedio", f"{avg_risk:.3f}")
-            
+
+            # Alertas inteligentes
+            for level, message in generate_smart_alerts(results_df):
+                getattr(st, level)(message)
+
             # Mostrar visualizaciones
             if detected_messages > 0:
                 st.header("📊 Visualizaciones")
@@ -447,14 +500,14 @@ def main():
                 detected_df = detected_df.sort_values('risk_score', ascending=False)
                 
                 # Filtros
-                col1, col2 = st.columns(2)
+                col1, col2, col3 = st.columns(3)
                 with col1:
                     sender_filter = st.multiselect(
                         "Filtrar por remitente:",
                         options=detected_df['sender'].unique(),
                         default=detected_df['sender'].unique()
                     )
-                
+
                 with col2:
                     risk_threshold = st.slider(
                         "Riesgo mínimo a mostrar:",
@@ -463,36 +516,41 @@ def main():
                         value=config['threshold'],
                         step=0.05
                     )
-                
+
+                with col3:
+                    word_filter = st.text_input(
+                        "Buscar palabra:",
+                        placeholder="Ej: secreto, jefe..."
+                    )
+
                 # Aplicar filtros
                 filtered_df = detected_df[
                     (detected_df['sender'].isin(sender_filter)) &
                     (detected_df['risk_score'] >= risk_threshold)
                 ]
-                
-                # Mostrar evidencias filtradas
-                for idx, row in filtered_df.head(20).iterrows():
-                    risk_level = "high" if row['risk_score'] > 0.8 else "medium" if row['risk_score'] > 0.6 else "low"
-                    
-                    with st.container():
-                        st.markdown(f"""
-                        <div class="evidence-card risk-{risk_level}">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <strong>👤 {row['sender']}</strong>
-                                <span style="color: #666;">📅 {row['timestamp']}</span>
-                            </div>
-                            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
-                                💬 {row['message']}
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span><strong>⚖️ Riesgo:</strong> {row['risk_score']:.3f}</span>
-                                <span><strong>🎯 Términos:</strong> {row['detected_words'] if row['detected_words'] else 'N/A'}</span>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                if len(filtered_df) > 20:
-                    st.info(f"Mostrando las primeras 20 evidencias de {len(filtered_df)} encontradas")
+
+                if word_filter:
+                    filtered_df = filtered_df[
+                        filtered_df['message'].str.contains(word_filter, case=False, na=False) |
+                        filtered_df['detected_words'].str.contains(word_filter, case=False, na=False)
+                    ]
+
+                # Mostrar evidencias filtradas en tabla
+                st.dataframe(
+                    filtered_df[['timestamp', 'sender', 'message', 'risk_score', 'detected_words']].head(50),
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "timestamp": st.column_config.TextColumn("📅 Fecha/Hora"),
+                        "sender": st.column_config.TextColumn("👤 Remitente"),
+                        "message": st.column_config.TextColumn("💬 Mensaje", width="large"),
+                        "risk_score": st.column_config.NumberColumn("⚖️ Riesgo", format="%.3f"),
+                        "detected_words": st.column_config.TextColumn("🎯 Términos"),
+                    }
+                )
+
+                if len(filtered_df) > 50:
+                    st.info(f"Mostrando las primeras 50 evidencias de {len(filtered_df)} encontradas")
             
             else:
                 st.success("✅ No se detectaron patrones sospechosos en la conversación")
@@ -500,34 +558,63 @@ def main():
             # Opción de descarga
             st.header("💾 Descargar Resultados")
             
-            col1, col2 = st.columns(2)
-            
+            col1, col2, col3 = st.columns(3)
+
             with col1:
                 # Descargar CSV completo
                 csv_buffer = io.StringIO()
                 results_df.to_csv(csv_buffer, index=False, encoding='utf-8')
                 csv_data = csv_buffer.getvalue()
-                
+
                 st.download_button(
                     label="📄 Descargar CSV Completo",
                     data=csv_data,
                     file_name=f"analisis_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                     mime="text/csv"
                 )
-            
+
             with col2:
                 # Descargar solo detecciones
                 if detected_messages > 0:
                     detected_csv = io.StringIO()
                     detected_df.to_csv(detected_csv, index=False, encoding='utf-8')
                     detected_data = detected_csv.getvalue()
-                    
+
                     st.download_button(
                         label="🚨 Descargar Solo Detecciones",
                         data=detected_data,
                         file_name=f"detecciones_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                         mime="text/csv"
                     )
+
+            with col3:
+                # Reporte ejecutivo en texto
+                report = f"""REPORTE EJECUTIVO - ANALIZADOR DE WHATSAPP
+{'=' * 50}
+Fecha de análisis: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Archivo analizado: {uploaded_file.name}
+Tipo de detección: {detection_type}
+Sensibilidad: {sensitivity}
+Umbral usado: {config['threshold']:.3f}
+
+RESUMEN
+{'=' * 50}
+Total de mensajes analizados: {total_messages}
+Mensajes detectados: {detected_messages}
+Porcentaje de detección: {percentage:.2f}%
+Riesgo promedio: {avg_risk:.4f}
+
+DISCLAIMER
+{'=' * 50}
+Este reporte es una herramienta de apoyo, no constituye evidencia legal
+definitiva. Los resultados requieren validación manual.
+"""
+                st.download_button(
+                    label="📋 Descargar Reporte Ejecutivo",
+                    data=report,
+                    file_name=f"reporte_{detection_type.lower().replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                    mime="text/plain"
+                )
         
         except Exception as e:
             st.error(f"❌ Error al procesar el archivo: {str(e)}")
