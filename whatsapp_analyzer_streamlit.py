@@ -127,6 +127,22 @@ def parse_dictionary_rows(reader):
     return dictionary
 
 
+def parse_quick_terms(raw_text):
+    """Parsea términos sueltos separados por coma o salto de línea.
+    Un término entre comillas se busca como frase exacta; si no, cada
+    término separado por coma se busca de forma independiente (OR)."""
+    terms = []
+    for line in raw_text.splitlines():
+        if not line.strip():
+            continue
+        for row in csv.reader([line], skipinitialspace=True):
+            for field in row:
+                term = field.strip().lower()
+                if term:
+                    terms.append(term)
+    return terms
+
+
 def load_dictionary_from_file(uploaded_file):
     """Carga diccionario desde archivo subido por el usuario"""
     try:
@@ -362,6 +378,51 @@ def create_visualizations(results_df, detection_type):
         else:
             st.info("No se encontraron detecciones para mostrar")
 
+def get_instructions_text():
+    return """# 🔍 Analizador de Conversaciones WhatsApp — Guía de Uso
+
+## ¿Qué es esta herramienta?
+Sistema de detección local para analizar patrones en conversaciones de WhatsApp.
+Procesa archivos completos sin enviarlos a servidores externos — todo corre en tu máquina.
+
+## Cómo usar
+
+### 1. Preparar el chat
+- Abre WhatsApp y ve al chat que querés analizar
+- Más opciones (⋮) → Exportar chat → Sin archivos multimedia
+- Guarda el archivo (.txt) en tu computadora
+
+### 2. Seleccionar categorías o términos
+- **Categorías predefinidas:** Acoso Sexual, Cyberbullying, Amenazas, Drogas, Infidelidad, etc.
+- **Términos propios:** Tipea nombres o palabras en la pestaña "📝 Tipear"
+  - Separalos por comas o saltos de línea: `juan, pedro, marla`
+  - Para buscar frases exactas, usalas entre comillas: `"buenos días"`
+- **Archivo CSV:** Si tenes muchos términos, sube un CSV con `término,categoría` por línea
+
+### 3. Ajustar sensibilidad
+- **Baja:** Menos falsos positivos, pero puede perder casos reales
+- **Media:** Balance recomendado
+- **Alta:** Detecta más casos, pero puede tener más falsos positivos
+
+### 4. Subir el chat y analizar
+- Sube el archivo .txt que exportaste
+- La app analiza automáticamente y muestra resultados
+
+## Resultados
+- **DETECTADO:** Mensaje superó el umbral de riesgo
+- **NO DETECTADO:** Por debajo del umbral
+- **Palabras detectadas:** Cuáles términos se encontraron en cada mensaje
+
+## Privacidad
+✅ Todos los archivos se procesan localmente en tu máquina
+✅ Nada se almacena ni envía a servidores externos
+✅ Los resultados solo los ves tú
+
+## Contacto
+Consultas o reportes: antoniolmartinez@gmail.com
+"""
+
+
 def main():
     # Header principal
     st.markdown("""
@@ -370,7 +431,18 @@ def main():
         <p>Sistema avanzado para detección de patrones y comportamientos en chats</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
+    # Instrucciones descargables
+    with st.expander("📖 Leer instrucciones", expanded=False):
+        instructions = get_instructions_text()
+        st.markdown(instructions)
+        st.download_button(
+            label="📥 Descargar instrucciones (TXT)",
+            data=instructions,
+            file_name="instrucciones_analizador_whatsapp.txt",
+            mime="text/plain"
+        )
+
     # Sidebar - Configuración
     with st.sidebar:
         st.header("⚙️ Configuración")
@@ -384,30 +456,55 @@ def main():
 
         # Términos puntuales adicionales (opcional, se suman a lo seleccionado arriba)
         st.subheader("📁 Agregar Términos Puntuales (Opcional)")
-        uploaded_dict = st.file_uploader(
-            "Subí un CSV/TXT con términos adicionales",
-            type=['csv', 'txt'],
-            help="Formato: término,categoría por línea. Se suma a las categorías elegidas arriba."
-        )
+
+        tab1, tab2 = st.tabs(["📝 Tipear", "📤 Archivo"])
+
+        extra_dictionary = None
+
+        with tab1:
+            quick_terms_text = st.text_area(
+                "Escribí nombres o palabras (separadas por comas o saltos de línea)",
+                placeholder='juan, pedro\nmarla\n"buenos días"',
+                height=80,
+                help='Cada término se busca de forma independiente (OR). Entre comillas se busca como frase exacta.'
+            )
+            if quick_terms_text.strip():
+                quick_terms = parse_quick_terms(quick_terms_text)
+                if quick_terms:
+                    extra_dictionary = {
+                        'high_risk': quick_terms,
+                        'medium_risk': [],
+                        'context_phrases': [],
+                        'work_context': []
+                    }
+                    st.success(f"✅ {len(quick_terms)} término(s) cargado(s): {', '.join(quick_terms[:5])}{'...' if len(quick_terms) > 5 else ''}")
+
+        with tab2:
+            uploaded_dict = st.file_uploader(
+                "Subí un CSV/TXT con términos adicionales",
+                type=['csv', 'txt'],
+                help="Formato: término,categoría por línea. Se suma a las categorías elegidas arriba."
+            )
+            if uploaded_dict:
+                extra_dictionary = load_dictionary_from_file(uploaded_dict)
+                if extra_dictionary:
+                    st.success("✅ Términos adicionales cargados correctamente")
+                else:
+                    st.error("❌ Error al cargar el archivo de términos adicionales")
 
         dictionaries_to_merge = [
             load_predefined_dictionary(PREDEFINED_DICTIONARY_FILES[category])
             for category in selected_categories
         ]
 
-        if uploaded_dict:
-            extra_dictionary = load_dictionary_from_file(uploaded_dict)
-            if extra_dictionary:
-                dictionaries_to_merge.append(extra_dictionary)
-                st.success("✅ Términos adicionales cargados correctamente")
-            else:
-                st.error("❌ Error al cargar el archivo de términos adicionales")
+        if extra_dictionary:
+            dictionaries_to_merge.append(extra_dictionary)
 
         dictionary = merge_dictionaries(dictionaries_to_merge) if dictionaries_to_merge else None
 
         if selected_categories:
             detection_type = " + ".join(selected_categories)
-        elif uploaded_dict and dictionary:
+        elif extra_dictionary and dictionary:
             detection_type = "Personalizado"
         else:
             detection_type = None
