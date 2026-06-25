@@ -170,9 +170,22 @@ def merge_dictionaries(dictionaries):
 
     return merged
 
+# Caracteres de formato invisibles que agregan los exports de WhatsApp en iPhone
+# (marcas de dirección de texto bidireccional) y espacios no estándar
+INVISIBLE_CHARS = ['‎', '‏', '‪', '‫', '‬', '‭', '‮']
+
+
+def normalize_whatsapp_text(content):
+    """Quita marcas Unicode invisibles de los exports de iPhone y normaliza espacios no estándar"""
+    for char in INVISIBLE_CHARS:
+        content = content.replace(char, '')
+    return content.replace(' ', ' ').replace('\xa0', ' ')
+
+
 def validate_whatsapp_file(content):
     """Valida si el contenido parece una exportación de WhatsApp antes de procesarlo"""
-    pattern = r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}.*\d{1,2}:\d{2}.*-.*:'
+    content = normalize_whatsapp_text(content)
+    pattern = r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}.*\d{1,2}:\d{2}.*[-\]].*:'
     total_lines = len(content.split('\n'))
     matches = len(re.findall(pattern, content))
     confidence = matches / max(total_lines, 1)
@@ -190,30 +203,51 @@ SYSTEM_MESSAGES = [
     'cambió el asunto del grupo a', 'eliminó este mensaje',
     'este mensaje fue eliminado', 'los mensajes y las llamadas están cifrados',
     'changed the subject to', 'this message was deleted',
+    'creó este grupo', 'se te añadió al grupo', 'añadió al grupo',
+    'imagen omitida', 'audio omitido', 'video omitido', 'documento omitido',
+    'gif omitido', 'sticker omitido', 'contacto omitida',
+]
+
+# Patrones de inicio de mensaje: (timestamp)(sender): (primera línea del texto)
+MESSAGE_START_PATTERNS = [
+    re.compile(r'^\[(\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}(?::\d{2})?\s[ap]\.\s?m\.)\]\s([^:]+):\s(.*)$'),
+    re.compile(r'^\[(\d{1,2}/\d{1,2}/\d{2,4}(?:,|\s)\s\d{1,2}:\d{2}(?::\d{2})?(?:\s[APap][Mm])?)\]\s([^:]+):\s(.*)$'),
+    re.compile(r'^(\d{1,2}/\d{1,2}/\d{2},\s\d{1,2}:\d{2}\s[ap]\.\sm\.)\s-\s([^:]+):\s(.*)$'),
+    re.compile(r'^(\d{1,2}/\d{1,2}/\d{2,4}\s\d{1,2}:\d{2}(?:\s[APap][Mm])?)\s-\s([^:]+):\s(.*)$'),
+    re.compile(r'^(\d{1,2}/\d{1,2}/\d{4},\s\d{1,2}:\d{2})\s-\s([^:]+):\s(.*)$'),
 ]
 
 
 def extract_messages_from_text(content):
-    """Extrae mensajes de texto de WhatsApp, eligiendo el patrón que más coincidencias produce"""
-    patterns = [
-        r'(\d{1,2}/\d{1,2}/\d{2},\s\d{1,2}:\d{2}\s[ap]\.\sm\.)\s-\s([^:]+):\s(.+)',
-        r'\[(\d{1,2}/\d{1,2}/\d{2,4}(?:,|\s)\s\d{1,2}:\d{2}(?::\d{2})?(?:\s[APap][Mm])?)\]\s([^:]+):\s(.+)',
-        r'(\d{1,2}/\d{1,2}/\d{2,4}\s\d{1,2}:\d{2}(?:\s[APap][Mm])?)\s-\s([^:]+):\s(.+)',
-        r'(\d{1,2}/\d{1,2}/\d{4},\s\d{1,2}:\d{2})\s-\s([^:]+):\s(.+)'
-    ]
+    """Extrae mensajes de WhatsApp línea por línea, soportando mensajes multilínea"""
+    content = normalize_whatsapp_text(content)
+    lines = content.split('\n')
 
-    best_matches = []
-    for pattern in patterns:
-        matches = re.findall(pattern, content, re.MULTILINE)
-        if len(matches) > len(best_matches):
-            best_matches = matches
+    best_pattern = max(
+        MESSAGE_START_PATTERNS,
+        key=lambda pattern: sum(1 for line in lines if pattern.match(line))
+    )
+
+    raw_messages = []
+    current = None
+    for line in lines:
+        match = best_pattern.match(line)
+        if match:
+            if current:
+                raw_messages.append(current)
+            timestamp, sender, text = match.groups()
+            current = [timestamp.strip(), sender.strip(), text.rstrip('\r')]
+        elif current:
+            current[2] += '\n' + line.rstrip('\r')
+    if current:
+        raw_messages.append(current)
 
     messages = []
-    for timestamp, sender, message in best_matches:
+    for timestamp, sender, message in raw_messages:
         message = message.strip()
         if not message or any(sys_msg in message.lower() for sys_msg in SYSTEM_MESSAGES):
             continue
-        messages.append((timestamp.strip(), sender.strip(), message))
+        messages.append((timestamp, sender, message))
 
     return messages
 
