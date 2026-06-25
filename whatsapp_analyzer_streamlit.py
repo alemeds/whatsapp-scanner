@@ -378,6 +378,42 @@ def create_visualizations(results_df, detection_type):
         else:
             st.info("No se encontraron detecciones para mostrar")
 
+def parse_whatsapp_date(date_str):
+    """Parsea una fecha de WhatsApp (múltiples formatos) a datetime object"""
+    from datetime import datetime
+
+    formats = [
+        '%d/%m/%Y',
+        '%d/%m/%y',
+        '%m/%d/%Y',
+        '%m/%d/%y',
+    ]
+
+    date_str = date_str.strip()
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def extract_dates_and_senders(messages):
+    """Extrae las fechas únicas y remitentes únicos de los mensajes"""
+    dates = set()
+    senders = set()
+
+    for timestamp, sender, message in messages:
+        date_part = timestamp.split()[0] if timestamp else None
+        if date_part:
+            parsed_date = parse_whatsapp_date(date_part)
+            if parsed_date:
+                dates.add(parsed_date)
+        senders.add(sender)
+
+    return sorted(dates), sorted(senders)
+
+
 def get_instructions_text():
     return """# 🔍 Analizador de Conversaciones WhatsApp — Guía de Uso
 
@@ -571,22 +607,86 @@ def main():
                 return
 
             st.success(f"✅ Se encontraron {len(messages)} mensajes")
-            
+
+            # Extraer fechas y remitentes para los filtros
+            dates, senders = extract_dates_and_senders(messages)
+
+            # Inicializar session_state para los filtros si no existen
+            if "filter_date_from" not in st.session_state:
+                st.session_state.filter_date_from = dates[0] if dates else None
+            if "filter_date_to" not in st.session_state:
+                st.session_state.filter_date_to = dates[-1] if dates else None
+            if "filter_senders" not in st.session_state:
+                st.session_state.filter_senders = senders if senders else []
+
+            # Filtros dinámicos basados en el contenido del chat
+            with st.sidebar.expander("🔍 Filtros Avanzados (Opcional)", expanded=False):
+                # Filtro de fechas
+                if dates:
+                    st.write("**Rango de Fechas**")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.session_state.filter_date_from = st.date_input(
+                            "Desde",
+                            value=st.session_state.filter_date_from,
+                            min_value=dates[0],
+                            max_value=dates[-1],
+                            key="date_from_input"
+                        )
+                    with col2:
+                        st.session_state.filter_date_to = st.date_input(
+                            "Hasta",
+                            value=st.session_state.filter_date_to,
+                            min_value=dates[0],
+                            max_value=dates[-1],
+                            key="date_to_input"
+                        )
+
+                # Filtro de remitentes
+                if senders:
+                    st.write("**Remitentes**")
+                    st.session_state.filter_senders = st.multiselect(
+                        "Selecciona quiénes analizar (si no seleccionas, se analizan todos)",
+                        options=senders,
+                        default=st.session_state.filter_senders,
+                        key="senders_filter_input"
+                    )
+
+            # Aplicar filtros a los mensajes
+            messages_filtered = messages
+
+            if dates and st.session_state.filter_date_from and st.session_state.filter_date_to:
+                messages_filtered = [
+                    (ts, sender, msg) for ts, sender, msg in messages_filtered
+                    if (parse_whatsapp_date(ts.split()[0]) and
+                        st.session_state.filter_date_from <= parse_whatsapp_date(ts.split()[0]) <= st.session_state.filter_date_to)
+                ]
+
+            if st.session_state.filter_senders:
+                messages_filtered = [
+                    (ts, sender, msg) for ts, sender, msg in messages_filtered
+                    if sender in st.session_state.filter_senders
+                ]
+
+            # Mostrar si se aplicaron filtros
+            if len(messages_filtered) < len(messages):
+                st.info(f"📊 Filtros aplicados: {len(messages_filtered)} de {len(messages)} mensajes")
+
             # Configurar análisis
             config = setup_sensitivity(
-                sensitivity, 
+                sensitivity,
                 custom_threshold if use_custom else None
             )
-            
+
             # Mostrar configuración
             st.info(f"🎯 Detectando: **{detection_type}** con sensibilidad **{sensitivity}** (umbral: {config['threshold']:.2f})")
-            
+
             # Procesar mensajes
             with st.spinner("🔄 Analizando mensajes..."):
                 results = []
                 progress_bar = st.progress(0)
-                
-                for i, (timestamp, sender, message) in enumerate(messages):
+
+                for i, (timestamp, sender, message) in enumerate(messages_filtered):
                     risk, label, words = analyze_message(message, sender, config, dictionary)
                     
                     results.append({
@@ -598,7 +698,7 @@ def main():
                         'detected_words': ', '.join(words) if words else ""
                     })
                     
-                    progress_bar.progress((i + 1) / len(messages))
+                    progress_bar.progress((i + 1) / len(messages_filtered))
                 
                 progress_bar.empty()
             
