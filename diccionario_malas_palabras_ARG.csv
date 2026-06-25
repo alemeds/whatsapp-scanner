@@ -1,0 +1,379 @@
+termino,categoria
+# INSULTOS Y OFENSAS GRAVES - Alto riesgo
+hijo de puta,palabras_alta
+hija de puta,palabras_alta
+cabrón,palabras_alta
+cabrona,palabras_alta
+puto,palabras_alta
+puta,palabras_alta
+mierda,palabras_alta
+jódete,palabras_alta
+vete a joder,palabras_alta
+que te jodan,palabras_alta
+púdrete,palabras_alta
+vete a la mierda,palabras_alta
+imbécil,palabras_alta
+idiota,palabras_alta
+estúpido,palabras_alta
+estúpida,palabras_alta
+retrasado,palabras_alta
+retrasada,palabras_alta
+mongólico,palabras_alta
+mongólica,palabras_alta
+tarado,palabras_alta
+tarada,palabras_alta
+deficiente,palabras_alta
+subnormal,palabras_alta
+inútil,palabras_alta
+basura,palabras_alta
+escoria,palabras_alta
+lacra,palabras_alta
+rata,palabras_alta
+cucaracha,palabras_alta
+gusano,palabras_alta
+# INSULTOS ARGENTINOS Y LUNFARDO - Alto riesgo
+la concha de tu madre,palabras_alta
+la concha de tu hermana,palabras_alta
+la puta que te parió,palabras_alta
+hijo de remil putas,palabras_alta
+conchudo,palabras_alta
+conchuda,palabras_alta
+ortiva,palabras_alta
+chorro,palabras_alta
+turro,palabras_alta
+turra,palabras_alta
+negro de mierda,palabras_alta
+negra de mierda,palabras_alta
+cabeza de termo,palabras_alta
+cabecita negra,palabras_alta
+planero,palabras_alta
+planera,palabras_alta
+villero,palabras_alta
+villera,palabras_alta
+negro villero,palabras_alta
+negra villera,palabras_alta
+cartonero de mierda,palabras_alta
+boliviano de mierda,palabras_alta
+paraguayo de mierda,palabras_alta
+peruano de mierda,palabras_alta
+chileno de mierda,palabras_alta
+# INSULTOS DISCRIMINATORIOS - Alto riesgo
+maricón,palabras_alta
+marica,palabras_alta
+joto,palabras_alta
+jota,palabras_alta
+puto maricón,palabras_alta
+gay de mierda,palabras_alta
+lesbiana de mierda,palabras_alta
+tortillera,palabras_alta
+bollera,palabras_alta
+travesti de mierda,palabras_alta
+trans de mierda,palabras_alta
+negro de mierda,palabras_alta
+sudaca,palabras_alta
+indio de mierda,palabras_alta
+chino de mierda,palabras_alta
+gitano de mierda,palabras_alta
+moro de mierda,palabras_alta
+judío de mierda,palabras_alta
+# INSULTOS FÍSICOS - Alto riesgo
+gordo asqueroso,palabras_alta
+gorda asquerosa,palabras_alta
+obeso de mierda,palabras_alta
+obesa de mierda,palabras_alta
+feo de mierda,palabras_alta
+fea de mierda,palabras_alta
+horrible,palabras_alta
+monstruo,palabras_alta
+aberración,palabras_alta
+enano,palabras_alta
+enana,palabras_alta
+cojo,palabras_alta
+coja,palabras_alta
+lisiado,palabras_alta
+lisiada,palabras_alta
+tullido,palabras_alta
+tullida,palabras_alta
+# INSULTOS SEXUALES - Alto riesgo
+zorra,palabras_alta
+guarra,palabras_alta
+ramera,palabras_alta
+prostituta,palabras_alta
+perra,palabras_alta
+golfa,palabras_alta
+furcia,palabras_alta
+cualquiera,palabras_alta
+putón,palabras_alta
+putita,palabras_alta
+# INSULTOS MODERADOS - Riesgo medio
+pendejo,palabras_media
+pendeja,palabras_media
+baboso,palabras_media
+babosa,palabras_media
+gil,palabras_media
+boludo,palabras_media
+boluda,palabras_media
+pelotudo,palabras_media
+pelotuda,palabras_media
+gilipollas,palabras_media
+capullo,palabras_media
+tonto,palabras_media
+tonta,palabras_media
+bobo,palabras_media
+boba,palabras_media
+bruto,palabras_media
+bruta,palabras_media
+animal,palabras_media
+bestia,palabras_media
+salvaje,palabras_media
+# INSULTOS ARGENTINOS MODERADOS - Riesgo medio
+salame,palabras_media
+salamin,palabras_media
+tarado,palabras_media
+tarada,palabras_media
+mogólico,palabras_media
+mogólica,palabras_media
+nabito,palabras_media
+nabita,palabras_media
+termo,palabras_media
+terma,palabras_media
+banana,palabras_media
+zapato,palabras_media
+zapatilla,palabras_media
+nabo,palabras_media
+papa,palabras_media
+papanatas,palabras_media
+huevón,palabras_media
+huevona,palabras_media
+porteño de mierda,palabras_media
+porteña de mierda,palabras_media
+provinciano,palabras_media
+provinciana,palabras_media
+cheto,palabras_media
+cheta,palabras_media
+fifi,palabras_media
+careta,palabras_media
+caretas,palabras_media
+buchón,palabras_media
+buchona,palabras_media
+aguante,palabras_media
+cagón,palabras_media
+cagona,palabras_media
+puto cagón,palabras_media
+puta cagona,palabras_media
+# INSULTOS HACIA APARIENCIA - Riesgo medio
+feo,palabras_media
+fea,palabras_media
+horrible,palabras_media
+espantoso,palabras_media
+espantosa,palabras_media
+asqueroso,palabras_media
+asquerosa,palabras_media
+repugnante,palabras_media
+cochino,palabras_media
+cochina,palabras_media
+sucio,palabras_media
+sucia,palabras_media
+guarro,palabras_media
+guarra,palabras_media
+# INSULTOS DE PERSONALIDAD - Riesgo medio
+patético,palabras_media
+patética,palabras_media
+perdedor,palabras_media
+perdedora,palabras_media
+fracasado,palabras_media
+fracasada,palabras_media
+loser,palabras_media
+cobarde,palabras_media
+gallina,palabras_media
+cagón,palabras_media
+cagona,palabras_media
+rajado,palabras_media
+rajada,palabras_media
+traidor,palabras_media
+traidora,palabras_media
+falso,palabras_media
+falsa,palabras_media
+hipócrita,palabras_media
+mentiroso,palabras_media
+mentirosa,palabras_media
+# PALABROTAS Y VULGARIDADES - Riesgo medio
+carajo,palabras_media
+coño,palabras_media
+joder,palabras_media
+hostia,palabras_media
+leches,palabras_media
+cojones,palabras_media
+huevos,palabras_media
+verga,palabras_media
+pinga,palabras_media
+chingar,palabras_media
+chingas,palabras_media
+mamada,palabras_media
+mamadas,palabras_media
+# PALABROTAS ARGENTINAS Y LUNFARDO - Riesgo medio
+concha,palabras_media
+conchudo,palabras_media
+conchuda,palabras_media
+la re concha,palabras_media
+che boludo,palabras_media
+che gil,palabras_media
+la puta madre,palabras_media
+que quilombo,palabras_media
+quilombo,palabras_media
+bardo,palabras_media
+chamuyo,palabras_media
+chamuyero,palabras_media
+chamuyera,palabras_media
+vago,palabras_media
+vaga,palabras_media
+fisura,palabras_media
+fisuras,palabras_media
+garca,palabras_media
+garcas,palabras_media
+fororro,palabras_media
+fororra,palabras_media
+sorete,palabras_media
+mina,palabras_media
+pibe,palabras_media
+piba,palabras_media
+gato,palabras_media
+gata,palabras_media
+ortiva de mierda,palabras_media
+falopero,palabras_media
+falopera,palabras_media
+fumanchero,palabras_media
+fumanchera,palabras_media
+# FRASES AGRESIVAS - Alto contexto
+vete a la mierda,frases_contexto
+que te jodan,frases_contexto
+jódete,frases_contexto
+púdrete,frases_contexto
+ojalá te mueras,frases_contexto
+vete a morir,frases_contexto
+que te parta un rayo,frases_contexto
+me cago en ti,frases_contexto
+me cago en tu madre,frases_contexto
+me cago en tu familia,frases_contexto
+tu madre es una puta,frases_contexto
+eres un hijo de puta,frases_contexto
+eres una hija de puta,frases_contexto
+no sirves para nada,frases_contexto
+eres inútil,frases_contexto
+eres basura,frases_contexto
+eres escoria,frases_contexto
+das asco,frases_contexto
+eres repugnante,frases_contexto
+nadie te quiere,frases_contexto
+todos te odian,frases_contexto
+mejor muérete,frases_contexto
+# FRASES AGRESIVAS ARGENTINAS - Alto contexto
+andate a la concha de tu madre,frases_contexto
+la concha de tu hermana,frases_contexto
+que te parta un rayo,frases_contexto
+rajá de acá,frases_contexto
+tomate el palo,frases_contexto
+andate a cagar,frases_contexto
+chupame la pija,frases_contexto
+chupame el orto,frases_contexto
+metete los dedos,frases_contexto
+sos un negro de mierda,frases_contexto
+sos una negra de mierda,frases_contexto
+volvete a tu villa,frases_contexto
+negro cabeza,frases_contexto
+negra cabeza,frases_contexto
+sos un turro,frases_contexto
+sos una turra,frases_contexto
+sos re ortiva,frases_contexto
+que mierda querés,frases_contexto
+no me rompas las pelotas,frases_contexto
+dejá de joder,frases_contexto
+dejá de hinchar las pelotas,frases_contexto
+me tenés los huevos llenos,frases_contexto
+sos un cagón,frases_contexto
+sos una cagona,frases_contexto
+andá a laburar,frases_contexto
+planero de mierda,frases_contexto
+planera de mierda,frases_contexto
+# FRASES DE MENOSPRECIO - Contexto medio
+eres un perdedor,frases_contexto
+eres una perdedora,frases_contexto
+eres patético,frases_contexto
+eres patética,frases_contexto
+no tienes amigos,frases_contexto
+nadie te soporta,frases_contexto
+eres ridículo,frases_contexto
+eres ridícula,frases_contexto
+qué asco me das,frases_contexto
+me das náuseas,frases_contexto
+eres un fracaso,frases_contexto
+tu vida es un fracaso,frases_contexto
+no vales nada,frases_contexto
+eres insignificante,frases_contexto
+no existes,frases_contexto
+eres invisible,frases_contexto
+# FRASES DISCRIMINATORIAS - Alto contexto
+vuelve a tu país,frases_contexto
+fuera de aquí extranjero,frases_contexto
+no perteneces aquí,frases_contexto
+gente como tú,frases_contexto
+tu raza,frases_contexto
+tu especie,frases_contexto
+eres diferente,frases_contexto
+no eres normal,frases_contexto
+eres anormal,frases_contexto
+# BURLAS Y HUMILLACIONES - Contexto medio
+todos se ríen de ti,frases_contexto
+eres el hazmerreír,frases_contexto
+qué ridículo eres,frases_contexto
+qué ridícula eres,frases_contexto
+pareces tonto,frases_contexto
+pareces tonta,frases_contexto
+qué estúpido,frases_contexto
+qué estúpida,frases_contexto
+no tienes cerebro,frases_contexto
+piensas con los pies,frases_contexto
+# CONTEXTO AGRESIVO
+violento,contexto_agresion
+agresivo,contexto_agresion
+hostil,contexto_agresion
+odio,contexto_agresion
+odiar,contexto_agresion
+desprecio,contexto_agresion
+despreciar,contexto_agresion
+asco,contexto_agresion
+repugnancia,contexto_agresion
+disgusto,contexto_agresion
+# CONTEXTO DE DISCRIMINACIÓN
+racismo,contexto_discriminacion
+racista,contexto_discriminacion
+xenofobia,contexto_discriminacion
+xenófobo,contexto_discriminacion
+homofobia,contexto_discriminacion
+homófobo,contexto_discriminacion
+transfobia,contexto_discriminacion
+transfóbico,contexto_discriminacion
+machismo,contexto_discriminacion
+machista,contexto_discriminacion
+sexismo,contexto_discriminacion
+sexista,contexto_discriminacion
+# CONTEXTO DE BULLYING
+acoso,contexto_bullying
+acosar,contexto_bullying
+molestar,contexto_bullying
+fastidiar,contexto_bullying
+joder,contexto_bullying
+jorobar,contexto_bullying
+chinchar,contexto_bullying
+incordiar,contexto_bullying
+importunar,contexto_bullying
+# CONTEXTO VULGAR
+vulgar,contexto_vulgar
+vulgaridad,contexto_vulgar
+obsceno,contexto_vulgar
+obscenidad,contexto_vulgar
+soez,contexto_vulgar
+grosero,contexto_vulgar
+grosería,contexto_vulgar
+maleducado,contexto_vulgar
+maleducada,contexto_vulgar

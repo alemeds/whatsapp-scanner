@@ -1,0 +1,668 @@
+﻿termino,categoria
+# AMENAZAS Y VIOLENCIA - Alto riesgo,
+matar,palabras_alta
+asesinar,palabras_alta
+eliminar,palabras_alta
+acabar contigo,palabras_alta
+te voy a matar,palabras_alta
+vas a morir,palabras_alta
+muerte,palabras_alta
+muerto,palabras_alta
+cadáver,palabras_alta
+sangre,palabras_alta
+violencia,palabras_alta
+golpear,palabras_alta
+pegar,palabras_alta
+golpes,palabras_alta
+paliza,palabras_alta
+torturar,palabras_alta
+tortura,palabras_alta
+destruir,palabras_alta
+quemar,palabras_alta
+incendiar,palabras_alta
+bomba,palabras_alta
+explotar,palabras_alta
+arma,palabras_alta
+pistola,palabras_alta
+cuchillo,palabras_alta
+navaja,palabras_alta
+veneno,palabras_alta
+envenenar,palabras_alta
+# AMENAZAS Y VIOLENCIA - Riesgo medio,
+amenaza,palabras_media
+amenazar,palabras_media
+intimidar,palabras_media
+intimidación,palabras_media
+asustar,palabras_media
+miedo,palabras_media
+terror,palabras_media
+pánico,palabras_media
+lastimar,palabras_media
+dañar,palabras_media
+herir,palabras_media
+dolor,palabras_media
+sufrir,palabras_media
+sufrimiento,palabras_media
+castigo,palabras_media
+castigar,palabras_media
+venganza,palabras_media
+vengar,palabras_media
+pagar caro,palabras_media
+te arrepentirás,palabras_media
+lo lamentarás,palabras_media
+consecuencias,palabras_media
+precio,palabras_media
+ajuste de cuentas,palabras_media
+# CYBERBULLYING - Alto riesgo,
+idiota,palabras_alta
+estúpido,palabras_alta
+estúpida,palabras_alta
+imbécil,palabras_alta
+retrasado,palabras_alta
+retrasada,palabras_alta
+inútil,palabras_alta
+basura,palabras_alta
+escoria,palabras_alta
+lacra,palabras_alta
+patético,palabras_alta
+patética,palabras_alta
+perdedor,palabras_alta
+perdedora,palabras_alta
+fracasado,palabras_alta
+fracasada,palabras_alta
+nadie te quiere,palabras_alta
+todos te odian,palabras_alta
+eres repugnante,palabras_alta
+das asco,palabras_alta
+vete a morir,palabras_alta
+ojalá te mueras,palabras_alta
+no sirves para nada,palabras_alta
+eres un cero,palabras_alta
+eres una rata,palabras_alta
+cucaracha,palabras_alta
+gusano,palabras_alta
+# CYBERBULLYING - Riesgo medio,
+burla,palabras_media
+burlarse,palabras_media
+reírse de ti,palabras_media
+humillar,palabras_media
+humillación,palabras_media
+ridículo,palabras_media
+ridícula,palabras_media
+vergüenza,palabras_media
+vergonzoso,palabras_media
+vergonzosa,palabras_media
+raro,palabras_media
+rara,palabras_media
+rarito,palabras_media
+rarita,palabras_media
+fenómeno,palabras_media
+bicho raro,palabras_media
+inadaptado,palabras_media
+inadaptada,palabras_media
+antisocial,palabras_media
+extraño,palabras_media
+extraña,palabras_media
+diferente,palabras_media
+anormal,palabras_media
+loco,palabras_media
+loca,palabras_media
+chiflado,palabras_media
+chiflada,palabras_media
+# DROGAS - Alto riesgo,
+cocaína,palabras_alta
+coca,palabras_alta
+perico,palabras_alta
+polvo,palabras_alta
+nieve,palabras_alta
+blanca,palabras_alta
+heroína,palabras_alta
+caballo,palabras_alta
+jaco,palabras_alta
+marihuana,palabras_alta
+hierba,palabras_alta
+maría,palabras_alta
+mota,palabras_alta
+porro,palabras_alta
+canuto,palabras_alta
+churro,palabras_alta
+éxtasis,palabras_alta
+pastillas,palabras_alta
+mdma,palabras_alta
+cristal,palabras_alta
+metanfetamina,palabras_alta
+speed,palabras_alta
+anfetas,palabras_alta
+lsd,palabras_alta
+ácido,palabras_alta
+tripi,palabras_alta
+keta,palabras_alta
+ketamina,palabras_alta
+fentanilo,palabras_alta
+# DROGAS - Riesgo medio,
+mercancía,palabras_media
+producto,palabras_media
+material,palabras_media
+cosa,palabras_media
+eso,palabras_media
+aquello,palabras_media
+paquete,palabras_media
+bolsa,palabras_media
+sobre,palabras_media
+gramo,palabras_media
+medio,palabras_media
+cuarto,palabras_media
+onza,palabras_media
+kilo,palabras_media
+dosis,palabras_media
+toque,palabras_media
+jalón,palabras_media
+pase,palabras_media
+raya,palabras_media
+línea,palabras_media
+chute,palabras_media
+pico,palabras_media
+viaje,palabras_media
+vuelo,palabras_media
+colocón,palabras_media
+# INFIDELIDAD - Alto riesgo,
+aventura,palabras_alta
+amante,palabras_alta
+engaño,palabras_alta
+engañar,palabras_alta
+traición,palabras_alta
+traicionar,palabras_alta
+cuernos,palabras_alta
+infiel,palabras_alta
+infidelidad,palabras_alta
+otro hombre,palabras_alta
+otra mujer,palabras_alta
+me acosté con,palabras_alta
+me tiré a,palabras_alta
+estoy con otro,palabras_alta
+estoy con otra,palabras_alta
+tengo a alguien más,palabras_alta
+doble vida,palabras_alta
+segunda relación,palabras_alta
+mi novio no sabe,palabras_alta
+mi novia no sabe,palabras_alta
+mi esposo no sabe,palabras_alta
+mi esposa no sabe,palabras_alta
+# INFIDELIDAD - Riesgo medio,
+secreto,palabras_media
+ocultar,palabras_media
+esconder,palabras_media
+mentir,palabras_media
+mentira,palabras_media
+coartada,palabras_media
+excusa,palabras_media
+trabajo tarde,palabras_media
+reunión de trabajo,palabras_media
+viaje de negocios,palabras_media
+salida con amigos,palabras_media
+no puedo hablar,palabras_media
+estoy ocupado,palabras_media
+estoy ocupada,palabras_media
+después hablamos,palabras_media
+no es buen momento,palabras_media
+estoy en reunión,palabras_media
+mi pareja está aquí,palabras_media
+# ROBO Y ESTAFAS - Alto riesgo,
+robar,palabras_alta
+robo,palabras_alta
+estafa,palabras_alta
+estafar,palabras_alta
+fraude,palabras_alta
+defraudar,palabras_alta
+timo,palabras_alta
+timar,palabras_alta
+hurto,palabras_alta
+hurtar,palabras_alta
+apropiarse,palabras_alta
+malversar,palabras_alta
+falsificar,palabras_alta
+falsificación,palabras_alta
+clonación,palabras_alta
+clonar tarjeta,palabras_alta
+hackear,palabras_alta
+phishing,palabras_alta
+estafa piramidal,palabras_alta
+esquema ponzi,palabras_alta
+lavado de dinero,palabras_alta
+blanqueo,palabras_alta
+dinero sucio,palabras_alta
+dinero negro,palabras_alta
+evadir impuestos,palabras_alta
+evasión fiscal,palabras_alta
+# ROBO Y ESTAFAS - Riesgo medio,
+fácil dinero,palabras_media
+dinero rápido,palabras_media
+sin esfuerzo,palabras_media
+sin trabajar,palabras_media
+negocio seguro,palabras_media
+inversión garantizada,palabras_media
+oportunidad única,palabras_media
+por tiempo limitado,palabras_media
+no pierdas esta oportunidad,palabras_media
+solo para ti,palabras_media
+precio especial,palabras_media
+descuento exclusivo,palabras_media
+transferir dinero,palabras_media
+enviar dinero,palabras_media
+adelantar pago,palabras_media
+pago por adelantado,palabras_media
+depósito inicial,palabras_media
+comisión,palabras_media
+porcentaje,palabras_media
+ganancia,palabras_media
+# SUICIDIO - Alto riesgo,
+suicidio,palabras_alta
+suicidarme,palabras_alta
+matarme,palabras_alta
+quitarme la vida,palabras_alta
+acabar con todo,palabras_alta
+no quiero vivir,palabras_alta
+no vale la pena vivir,palabras_alta
+mejor muerto,palabras_alta
+mejor muerta,palabras_alta
+desaparecer para siempre,palabras_alta
+irme de este mundo,palabras_alta
+terminar con mi vida,palabras_alta
+no aguanto más,palabras_alta
+ya no puedo más,palabras_alta
+estoy acabado,palabras_alta
+estoy acabada,palabras_alta
+no hay salida,palabras_alta
+sin escape,palabras_alta
+callejón sin salida,palabras_alta
+túnel sin luz,palabras_alta
+abismo,palabras_alta
+precipicio,palabras_alta
+sobredosis,palabras_alta
+ahorcarse,palabras_alta
+cortarse las venas,palabras_alta
+# SUICIDIO - Riesgo medio,
+desesperación,palabras_media
+desesperado,palabras_media
+desesperada,palabras_media
+agotado,palabras_media
+agotada,palabras_media
+cansado de todo,palabras_media
+cansada de todo,palabras_media
+sin fuerzas,palabras_media
+sin energía,palabras_media
+vacío,palabras_media
+vacía,palabras_media
+hueco,palabras_media
+nada tiene sentido,palabras_media
+todo es inútil,palabras_media
+para qué seguir,palabras_media
+qué caso tiene,palabras_media
+no sirvo para nada,palabras_media
+soy un fracaso,palabras_media
+soy una carga,palabras_media
+todos estarían mejor sin mí,palabras_media
+nadie me va a extrañar,palabras_media
+soy un estorbo,palabras_media
+no tengo propósito,palabras_media
+mi vida no vale nada,palabras_media
+# PALABRAS OFENSIVAS Y MALAS PALABRAS - Alto riesgo,
+cabrón,palabras_alta
+cabrona,palabras_alta
+hijo de puta,palabras_alta
+hija de puta,palabras_alta
+puto,palabras_alta
+puta,palabras_alta
+maricón,palabras_alta
+marica,palabras_alta
+joto,palabras_alta
+jota,palabras_alta
+gay de mierda,palabras_alta
+lesbiana de mierda,palabras_alta
+travesti,palabras_alta
+transexual,palabras_alta
+negro de mierda,palabras_alta
+indio de mierda,palabras_alta
+chino de mierda,palabras_alta
+gordo asqueroso,palabras_alta
+gorda asquerosa,palabras_alta
+feo de mierda,palabras_alta
+fea de mierda,palabras_alta
+enano,palabras_alta
+enana,palabras_alta
+cojo,palabras_alta
+coja,palabras_alta
+lisiado,palabras_alta
+lisiada,palabras_alta
+tarado,palabras_alta
+tarada,palabras_alta
+mongólico,palabras_alta
+mongólica,palabras_alta
+# PALABRAS OFENSIVAS Y MALAS PALABRAS - Riesgo medio,
+pendejo,palabras_media
+pendeja,palabras_media
+baboso,palabras_media
+babosa,palabras_media
+gil,palabras_media
+boludo,palabras_media
+boluda,palabras_media
+pelotudo,palabras_media
+pelotuda,palabras_media
+tarado,palabras_media
+tarada,palabras_media
+bobo,palabras_media
+boba,palabras_media
+tonto,palabras_media
+tonta,palabras_media
+bruto,palabras_media
+bruta,palabras_media
+animal,palabras_media
+bestia,palabras_media
+cerdo,palabras_media
+cerda,palabras_media
+cochino,palabras_media
+cochina,palabras_media
+sucio,palabras_media
+sucia,palabras_media
+asqueroso,palabras_media
+asquerosa,palabras_media
+repugnante,palabras_media
+# FRASES DE CONTEXTO - Amenazas,
+vas a pagar,frases_contexto
+me las vas a pagar,frases_contexto
+no sabes con quién te metes,frases_contexto
+te conozco,frases_contexto
+sé dónde vives,frases_contexto
+sé dónde trabajas,frases_contexto
+sé dónde estudias,frases_contexto
+conozco a tu familia,frases_contexto
+tus hijos,frases_contexto
+tu familia va a sufrir,frases_contexto
+nadie te va a proteger,frases_contexto
+no tienes escapatoria,frases_contexto
+no hay lugar donde esconderte,frases_contexto
+te vamos a encontrar,frases_contexto
+no importa dónde vayas,frases_contexto
+cuenta los días,frases_contexto
+tus días están contados,frases_contexto
+vas a desaparecer,frases_contexto
+nadie te va a extrañar,frases_contexto
+como si nunca hubieras existido,frases_contexto
+puede pasar cualquier cosa,frases_contexto
+cuidado al caminar,frases_contexto
+ten cuidado,frases_contexto
+algo malo puede pasar,frases_contexto
+# FRASES DE CONTEXTO - Cyberbullying,
+todos se ríen de ti,frases_contexto
+eres el hazmerreír,frases_contexto
+nadie quiere ser tu amigo,frases_contexto
+siempre estás solo,frases_contexto
+siempre estás sola,frases_contexto
+no tienes amigos,frases_contexto
+eres invisible,frases_contexto
+nadie te nota,frases_contexto
+pasas desapercibido,frases_contexto
+pasas desapercibida,frases_contexto
+qué haces aquí,frases_contexto
+no perteneces aquí,frases_contexto
+vete de aquí,frases_contexto
+no te queremos,frases_contexto
+sobras,frases_contexto
+estás de más,frases_contexto
+mejor desaparece,frases_contexto
+haznos un favor y vete,frases_contexto
+el mundo sería mejor sin ti,frases_contexto
+eres un error,frases_contexto
+tu vida es un chiste,frases_contexto
+# FRASES DE CONTEXTO - Drogas,
+tienes algo,frases_contexto
+necesito algo,frases_contexto
+consígueme algo,frases_contexto
+hay disponible,frases_contexto
+está fresco,frases_contexto
+buena calidad,frases_contexto
+recién llegado,frases_contexto
+directo del productor,frases_contexto
+sin cortar,frases_contexto
+puro,frases_contexto
+de primera,frases_contexto
+entrega a domicilio,frases_contexto
+delivery,frases_contexto
+punto de encuentro,frases_contexto
+lugar de siempre,frases_contexto
+mismo sitio,frases_contexto
+esquina habitual,frases_contexto
+# FRASES DE CONTEXTO - Infidelidad,
+no le digas a nadie,frases_contexto
+entre nosotros,frases_contexto
+nuestro secreto,frases_contexto
+que no se entere,frases_contexto
+mantén esto en secreto,frases_contexto
+solo tú y yo sabemos,frases_contexto
+borra este mensaje,frases_contexto
+elimina la conversación,frases_contexto
+no dejes rastro,frases_contexto
+cuando él no esté,frases_contexto
+cuando ella no esté,frases_contexto
+cuando esté solo,frases_contexto
+cuando esté sola,frases_contexto
+aprovechemos que,frases_contexto
+mientras no regrese,frases_contexto
+tenemos poco tiempo,frases_contexto
+rápido antes que llegue,frases_contexto
+fingir que trabajamos,frases_contexto
+inventar una excusa,frases_contexto
+decir que estaba contigo,frases_contexto
+# FRASES DE CONTEXTO - Estafas,
+necesito que me ayudes,frases_contexto
+es urgente,frases_contexto
+tengo problemas,frases_contexto
+estoy en apuros,frases_contexto
+solo esta vez,frases_contexto
+te lo devuelvo mañana,frases_contexto
+confía en mí,frases_contexto
+es confidencial,frases_contexto
+oportunidad de negocio,frases_contexto
+puedes ganar mucho,frases_contexto
+duplicar tu dinero,frases_contexto
+triplicar inversión,frases_contexto
+sin riesgo,frases_contexto
+100% seguro,frases_contexto
+garantizado,frases_contexto
+no puedes perder,frases_contexto
+últimas plazas,frases_contexto
+oferta limitada,frases_contexto
+actúa rápido,frases_contexto
+decide ahora,frases_contexto
+no hay tiempo que perder,frases_contexto
+otros ya se apuntaron,frases_contexto
+mucha demanda,frases_contexto
+# FRASES DE CONTEXTO - Suicidio,
+despedirse,frases_contexto
+despedida,frases_contexto
+último adiós,frases_contexto
+no nos vamos a ver más,frases_contexto
+cuídense,frases_contexto
+sean felices,frases_contexto
+perdón por todo,frases_contexto
+los quiero mucho,frases_contexto
+gracias por todo,frases_contexto
+ha sido un placer conocerlos,frases_contexto
+espero que me recuerden,frases_contexto
+no me olviden,frases_contexto
+cuando ya no esté,frases_contexto
+después de que me vaya,frases_contexto
+pronto estaré en paz,frases_contexto
+pronto descansaré,frases_contexto
+se terminó todo,frases_contexto
+llegó mi hora,frases_contexto
+es mi momento,frases_contexto
+no hay vuelta atrás,frases_contexto
+ya tomé la decisión,frases_contexto
+ya está decidido,frases_contexto
+no me van a detener,frases_contexto
+nadie puede ayudarme,frases_contexto
+es demasiado tarde,frases_contexto
+# CONTEXTO - Agresión,
+violento,contexto_agresion
+agresivo,contexto_agresion
+agresión,contexto_agresion
+ataque,contexto_agresion
+atacar,contexto_agresion
+agredir,contexto_agresion
+hostil,contexto_agresion
+hostilidad,contexto_agresion
+enemigo,contexto_agresion
+odio,contexto_agresion
+odiar,contexto_agresion
+rencor,contexto_agresion
+ira,contexto_agresion
+furia,contexto_agresion
+rabia,contexto_agresion
+cólera,contexto_agresion
+enfurecer,contexto_agresion
+enojado,contexto_agresion
+furioso,contexto_agresion
+iracundo,contexto_agresion
+peligro,contexto_agresion
+peligroso,contexto_agresion
+riesgo,contexto_agresion
+amenazante,contexto_agresion
+# CONTEXTO - Digital,
+redes sociales,contexto_digital
+facebook,contexto_digital
+instagram,contexto_digital
+twitter,contexto_digital
+tiktok,contexto_digital
+whatsapp,contexto_digital
+telegram,contexto_digital
+snapchat,contexto_digital
+youtube,contexto_digital
+publicar,contexto_digital
+postear,contexto_digital
+compartir,contexto_digital
+etiquetar,contexto_digital
+comentar,contexto_digital
+like,contexto_digital
+dislike,contexto_digital
+seguir,contexto_digital
+bloquear,contexto_digital
+reportar,contexto_digital
+denunciar,contexto_digital
+captura de pantalla,contexto_digital
+screenshot,contexto_digital
+foto,contexto_digital
+video,contexto_digital
+meme,contexto_digital
+viral,contexto_digital
+trending,contexto_digital
+hashtag,contexto_digital
+perfil,contexto_digital
+cuenta,contexto_digital
+# CONTEXTO - Sustancias,
+drogarse,contexto_sustancias
+colocarse,contexto_sustancias
+ponerse,contexto_sustancias
+consumir,contexto_sustancias
+usar,contexto_sustancias
+tomar,contexto_sustancias
+probar,contexto_sustancias
+experimentar,contexto_sustancias
+adicción,contexto_sustancias
+adicto,contexto_sustancias
+adicta,contexto_sustancias
+dependencia,contexto_sustancias
+mono,contexto_sustancias
+síndrome de abstinencia,contexto_sustancias
+dealer,contexto_sustancias
+camello,contexto_sustancias
+proveedor,contexto_sustancias
+contacto,contexto_sustancias
+traficante,contexto_sustancias
+narcotráfico,contexto_sustancias
+vender,contexto_sustancias
+comprar,contexto_sustancias
+traficar,contexto_sustancias
+distribuir,contexto_sustancias
+transportar,contexto_sustancias
+pasar,contexto_sustancias
+mula,contexto_sustancias
+correo,contexto_sustancias
+# CONTEXTO - Relación,
+mi esposo,contexto_relacion
+mi esposa,contexto_relacion
+mi novio,contexto_relacion
+mi novia,contexto_relacion
+mi pareja,contexto_relacion
+mi marido,contexto_relacion
+mi mujer,contexto_relacion
+en casa,contexto_relacion
+familia,contexto_relacion
+hijos,contexto_relacion
+divorcio,contexto_relacion
+separación,contexto_relacion
+matrimonio,contexto_relacion
+relación,contexto_relacion
+compromiso,contexto_relacion
+fidelidad,contexto_relacion
+confianza,contexto_relacion
+sospecha,contexto_relacion
+sospechar,contexto_relacion
+duda,contexto_relacion
+dudar,contexto_relacion
+# CONTEXTO - Financiero,
+dinero,contexto_financiero
+plata,contexto_financiero
+efectivo,contexto_financiero
+transferencia,contexto_financiero
+depósito,contexto_financiero
+cuenta bancaria,contexto_financiero
+tarjeta de crédito,contexto_financiero
+tarjeta de débito,contexto_financiero
+préstamo,contexto_financiero
+crédito,contexto_financiero
+inversión,contexto_financiero
+negocio,contexto_financiero
+empresa,contexto_financiero
+socio,contexto_financiero
+sociedad,contexto_financiero
+beneficio,contexto_financiero
+rentabilidad,contexto_financiero
+interés,contexto_financiero
+dividendo,contexto_financiero
+patrimonio,contexto_financiero
+capital,contexto_financiero
+banco,contexto_financiero
+financiera,contexto_financiero
+cooperativa,contexto_financiero
+# CONTEXTO - Emocional,
+depresión,contexto_emocional
+deprimido,contexto_emocional
+deprimida,contexto_emocional
+tristeza,contexto_emocional
+triste,contexto_emocional
+melancolía,contexto_emocional
+melancólico,contexto_emocional
+melancólica,contexto_emocional
+dolor emocional,contexto_emocional
+sufrimiento,contexto_emocional
+sufrir,contexto_emocional
+angustia,contexto_emocional
+angustiado,contexto_emocional
+angustiada,contexto_emocional
+ansiedad,contexto_emocional
+ansioso,contexto_emocional
+ansiosa,contexto_emocional
+estrés,contexto_emocional
+estresado,contexto_emocional
+estresada,contexto_emocional
+soledad,contexto_emocional
+solo,contexto_emocional
+sola,contexto_emocional
+abandono,contexto_emocional
+abandonado,contexto_emocional
+abandonada,contexto_emocional
+rechazo,contexto_emocional
+rechazado,contexto_emocional
+rechazada,contexto_emocional
+
