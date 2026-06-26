@@ -5,8 +5,9 @@
 
 import streamlit as st
 import plotly.express as px
+from .i18n import t
 
-SUPPORT_EMAIL = "antoniolmartinez@gmail.com"
+AUTHOR_LINKEDIN = "https://www.linkedin.com/in/alemeds/"
 
 
 def generate_smart_alerts(results_df):
@@ -63,46 +64,32 @@ def create_visualizations(results_df, detection_type):
 
 def get_instructions_text():
     """Return user instructions as formatted markdown."""
-    return f"""# 🔍 WhatsApp Analyzer — Usage Guide
+    return f"""# 🔍 {t('instructions.title')}
 
-## What is this tool?
+## {t('instructions.what_is')}
 
-Local detection system for analyzing patterns in WhatsApp conversations.
-Processes files entirely without sending them to external servers — everything runs on your machine.
+{t('instructions.what_is_text')}
 
-## How to use
+## {t('instructions.how_to_use')}
 
-### 1. Prepare the chat
-- Open WhatsApp and go to the chat you want to analyze
-- More options (⋮) → Export chat → Without media
-- Save the file (.txt) on your computer
+### {t('instructions.prepare_chat')}
+{t('instructions.prepare_chat_steps')}
 
-### 2. Select categories or terms
-- **Predefined categories:** Sexual Harassment, Cyberbullying, Threats, Drugs, Infidelity, etc.
-- **Custom terms:** Type names or words in the "Type" tab
-  - Separate with commas or line breaks: `juan, pedro, marla`
-  - For exact phrase search, use quotes: `"good morning"`
-- **CSV file:** For many terms, upload a CSV with `term,category` per line
+### {t('instructions.select_categories')}
+{t('instructions.select_categories_text')}
 
-### 3. Adjust sensitivity
-- **Low:** Fewer false positives, but may miss real cases
-- **Medium:** Recommended balance
-- **High:** Detects more cases, but may have more false positives
+### {t('instructions.adjust_sensitivity')}
+{t('instructions.adjust_sensitivity_text')}
 
-### 4. Upload the chat and analyze
-- Upload the .txt file you exported
-- The app analyzes automatically and shows results
+### {t('instructions.upload_analyze')}
+{t('instructions.upload_analyze_text')}
 
-## Results
-- **DETECTED:** Message exceeded risk threshold
-- **NOT DETECTED:** Below threshold
-- **Detected words:** Which terms were found in each message
+## {t('instructions.results')}
+{t('instructions.results_text')}
 
-## Privacy
-✅ All files are processed locally on your machine
-✅ Nothing is stored or sent to external servers
-✅ Only you see the results
+## {t('instructions.about_author')}
+{t('instructions.author_linkedin', linkedin=AUTHOR_LINKEDIN)}
 
-## Support
-Questions or reports: {SUPPORT_EMAIL}
+## {t('instructions.privacy')}
+{t('instructions.privacy_text')}
 """

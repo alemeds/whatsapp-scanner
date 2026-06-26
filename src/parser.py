@@ -9,14 +9,22 @@ from datetime import datetime
 INVISIBLE_CHARS = ['‎', '‏', '‪', '‫', '‬', '‭', '‮']
 
 SYSTEM_MESSAGES = [
-    '<multimedia omitido>', '<media omitted>',
-    'se unió usando el enlace de invitación del grupo',
-    'cambió el asunto del grupo a', 'eliminó este mensaje',
-    'este mensaje fue eliminado', 'los mensajes y las llamadas están cifrados',
-    'changed the subject to', 'this message was deleted',
-    'creó este grupo', 'se te añadió al grupo', 'añadió al grupo',
-    'imagen omitida', 'audio omitido', 'video omitido', 'documento omitido',
-    'gif omitido', 'sticker omitido', 'contacto omitida',
+    '<multimedia omitted>',
+    'joined using the group invite link',
+    'changed the group subject to',
+    'deleted this message',
+    'this message was deleted',
+    'messages and calls are encrypted',
+    'created this group',
+    'you were added to the group',
+    'added to the group',
+    'image omitted',
+    'audio omitted',
+    'video omitted',
+    'document omitted',
+    'gif omitted',
+    'sticker omitted',
+    'contact omitted',
 ]
 
 MESSAGE_START_PATTERNS = [
