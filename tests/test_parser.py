@@ -40,13 +40,15 @@ class TestParserAndroid:
     def test_should_skip_system_messages(self):
         """Filter out system messages from exports."""
         content = """12/06/24, 10:30 a. m. - Alice: Hello
-12/06/24, 10:31 a. m. - <multimedia omitido>
+12/06/24, 10:31 a. m. - System: <multimedia omitido>
 12/06/24, 10:32 a. m. - Bob: Hi there"""
 
         messages = extract_messages_from_text(content)
         assert len(messages) == 2
         assert messages[0][1] == "Alice"
+        assert messages[0][2] == "Hello"
         assert messages[1][1] == "Bob"
+        assert messages[1][2] == "Hi there"
 
     def test_should_handle_multiline_messages(self):
         """Support multiline messages in conversation."""

@@ -5,7 +5,6 @@
 
 import csv
 import io
-import streamlit as st
 from pathlib import Path
 
 CATEGORY_MAP = {
@@ -85,11 +84,11 @@ def load_dictionary_from_file(uploaded_file):
         return parse_dictionary_rows(reader)
 
     except Exception as e:
+        import streamlit as st
         st.error(f"Error loading dictionary: {e}")
         return None
 
 
-@st.cache_data
 def load_predefined_dictionary(filename):
     """Load predefined dictionary from CSV file bundled with the app."""
     path = Path(__file__).parent.parent / filename
