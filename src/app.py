@@ -15,7 +15,7 @@ from .ui import generate_smart_alerts, create_visualizations, get_instructions_t
 from .i18n import t, get_language, set_language, SUPPORTED_LANGUAGES
 
 st.set_page_config(
-    page_title=t("app.page_title"),
+    page_title="WhatsApp Analyzer - Pattern Detection",
     page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
