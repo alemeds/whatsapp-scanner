@@ -122,7 +122,7 @@
     "results": "Results",
     "results_text": "- **DETECTED:** Message exceeded risk threshold\n- **NOT DETECTED:** Below threshold\n- **Detected words:** Which terms were found in each message",
     "about_author": "About the creator",
-    "author_linkedin": "GitHub repository & more: {linkedin}",
+    "author_linkedin": "Tool developed by Lic. Antonio L. Martínez — Digital Forensic Expert before the National Judiciary. Inquiries and expert appointments: {linkedin}",
     "privacy": "Privacy",
     "privacy_text": "All files are processed locally in memory. No data is stored or transmitted to external servers."
   },

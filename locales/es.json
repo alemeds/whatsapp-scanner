@@ -122,7 +122,7 @@
     "results": "Resultados",
     "results_text": "- **DETECTADO:** El mensaje superó el umbral de riesgo\n- **NO DETECTADO:** Por debajo del umbral\n- **Palabras detectadas:** Qué términos se encontraron en cada mensaje",
     "about_author": "Sobre el creador",
-    "author_linkedin": "Repositorio en GitHub y más: {linkedin}",
+    "author_linkedin": "Herramienta desarrollada por el Lic. Antonio L. Martínez — Perito Informático Forense ante el Poder Judicial de la Nación. Consultas y designaciones periciales: {linkedin}",
     "privacy": "Privacidad",
     "privacy_text": "Todos los archivos se procesan localmente en memoria. No se almacena ni transmite ningún dato a servidores externos."
   },

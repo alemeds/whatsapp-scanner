@@ -435,6 +435,19 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("---")
+    language = get_language()
+    if language == "es":
+        st.markdown("""
+🔍 Desarrollado por **Lic. Antonio L. Martínez** · Perito Informático Forense · PJN
+📎 [linkedin.com/in/alemeds](https://www.linkedin.com/in/alemeds/)
+        """)
+    else:
+        st.markdown("""
+🔍 Developed by **Lic. Antonio L. Martínez** · Digital Forensic Expert · Argentine Federal Courts
+📎 [linkedin.com/in/alemeds](https://www.linkedin.com/in/alemeds/)
+        """)
+
 
 if __name__ == "__main__":
     main()
