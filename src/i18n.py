@@ -13,14 +13,24 @@ SUPPORTED_LANGUAGES = {
     "English": "en"
 }
 
+FALLBACK_TRANSLATIONS = {}
+
 
 def load_translations(language_code):
     """Load translation dictionary for the specified language."""
     locale_file = LOCALES_DIR / f"{language_code}.json"
+
+    if not locale_file.exists():
+        if language_code == "es":
+            return FALLBACK_TRANSLATIONS
+        return load_translations("es")
+
     try:
         with open(locale_file, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError):
+        if language_code == "es":
+            return FALLBACK_TRANSLATIONS
         return load_translations("es")
 
 

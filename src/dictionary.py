@@ -92,9 +92,28 @@ def load_dictionary_from_file(uploaded_file):
 def load_predefined_dictionary(filename):
     """Load predefined dictionary from CSV file bundled with the app."""
     path = Path(__file__).parent.parent / filename
-    with open(path, 'r', encoding='utf-8-sig', newline='') as f:
-        reader = csv.reader(f)
-        return parse_dictionary_rows(reader)
+
+    if not path.exists():
+        return {
+            'high_risk': [],
+            'medium_risk': [],
+            'context_phrases': [],
+            'work_context': []
+        }
+
+    try:
+        with open(path, 'r', encoding='utf-8-sig', newline='') as f:
+            reader = csv.reader(f)
+            return parse_dictionary_rows(reader)
+    except Exception as e:
+        import streamlit as st
+        st.error(f"Error loading dictionary from {filename}: {e}")
+        return {
+            'high_risk': [],
+            'medium_risk': [],
+            'context_phrases': [],
+            'work_context': []
+        }
 
 
 def merge_dictionaries(dictionaries):
