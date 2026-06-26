@@ -240,7 +240,7 @@ def main():
             if st.session_state.use_date_filter and dates and st.session_state.filter_date_from and st.session_state.filter_date_to:
                 filtered_messages = []
                 for ts, sender, msg in messages_filtered:
-                    msg_date = parse_whatsapp_date(ts.split()[0])
+                    msg_date = parse_whatsapp_date(ts.split()[0].strip(','))
                     if msg_date and st.session_state.filter_date_from <= msg_date <= st.session_state.filter_date_to:
                         filtered_messages.append((ts, sender, msg))
                 messages_filtered = filtered_messages

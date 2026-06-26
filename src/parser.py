@@ -108,6 +108,7 @@ def extract_dates_and_senders(messages):
     for timestamp, sender, message in messages:
         date_part = timestamp.split()[0] if timestamp else None
         if date_part:
+            date_part = date_part.strip(',')
             parsed_date = parse_whatsapp_date(date_part)
             if parsed_date:
                 dates.add(parsed_date)

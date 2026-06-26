@@ -22,6 +22,21 @@ class TestParserAndroid:
         assert messages[1][1] == "Bob"
         assert messages[1][2] == "Hi there"
 
+    def test_should_extract_dates_correctly(self):
+        """Parse dates from message timestamps correctly."""
+        from src.parser import extract_dates_and_senders
+        content = """12/06/24, 10:30 a. m. - Alice: Hello
+12/06/24, 10:31 a. m. - Bob: Hi there
+13/06/24, 09:00 a. m. - Alice: Second day"""
+
+        messages = extract_messages_from_text(content)
+        dates, senders = extract_dates_and_senders(messages)
+
+        assert len(dates) == 2
+        assert len(senders) == 2
+        assert 'Alice' in senders
+        assert 'Bob' in senders
+
     def test_should_skip_system_messages(self):
         """Filter out system messages from exports."""
         content = """12/06/24, 10:30 a. m. - Alice: Hello
