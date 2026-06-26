@@ -54,7 +54,7 @@
     "date_range": "Rango de Fechas (Opcional)",
     "from": "Desde",
     "to": "Hasta",
-    "chat_contains": "El chat contiene mensajes de {from} a {to}",
+    "chat_contains": "El chat contiene mensajes de {date_from} a {date_to}",
     "applied": "Filtros aplicados: {filtered} de {total} mensajes"
   },
   "analysis": {

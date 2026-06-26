@@ -207,7 +207,7 @@ def main():
 
             st.write(f"**🗓️ {t('filters.date_range')}**")
             if dates:
-                st.caption(t("filters.chat_contains", from_=dates[0], to=dates[-1]))
+                st.caption(t("filters.chat_contains", date_from=dates[0], date_to=dates[-1]))
 
             col_date1, col_date2 = st.columns(2)
             with col_date1:
