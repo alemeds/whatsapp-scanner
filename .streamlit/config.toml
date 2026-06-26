@@ -7,7 +7,6 @@ font = "sans serif"
 
 [client]
 showErrorDetails = false
-showWarningOnDirectExecution = false
 
 [logger]
 level = "info"
