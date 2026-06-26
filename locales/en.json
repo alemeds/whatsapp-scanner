@@ -1,0 +1,133 @@
+{
+  "app": {
+    "title": "WhatsApp Analyzer",
+    "subtitle": "Advanced Pattern Detection Application",
+    "description": "Advanced system for pattern and behavior detection in chats",
+    "page_title": "WhatsApp Analyzer - Pattern Detection"
+  },
+  "sidebar": {
+    "configuration": "Configuration",
+    "detection_type": "Detection Type(s)",
+    "detection_type_help": "You can combine multiple categories at once",
+    "add_custom_terms": "Add Custom Terms (Optional)",
+    "sensitivity": "Sensitivity Level",
+    "sensitivity_help": "Low: Fewer false positives | High: Detects more cases",
+    "custom_threshold": "Custom Threshold (Optional)",
+    "custom_threshold_help": "0.0 = Very sensitive | 1.0 = Very strict",
+    "use_custom_threshold": "Use custom threshold",
+    "advanced_filters": "Advanced Filters (Optional)",
+    "senders": "Senders",
+    "select_senders": "Select senders to analyze (if none selected, all are analyzed)"
+  },
+  "tabs": {
+    "type": "Type",
+    "file": "File"
+  },
+  "custom_terms": {
+    "type_placeholder": "juan, pedro\nmarla\n\"good morning\"",
+    "type_help": "Each term is searched independently (OR). Quoted text is searched as exact phrase.",
+    "file_uploader": "Upload a CSV/TXT with additional terms",
+    "file_uploader_help": "Format: term,category per line. Added to selected categories above.",
+    "success": "Additional terms loaded successfully",
+    "error": "Error loading terms file"
+  },
+  "upload": {
+    "header": "Upload Chat File",
+    "label": "Select WhatsApp chat file (.txt)",
+    "help": "Must be a WhatsApp chat export without media",
+    "dictionary_summary": "Dictionary Summary",
+    "no_dictionary": "Select at least one category or upload custom terms in the sidebar"
+  },
+  "dictionary": {
+    "high_risk": "High Risk",
+    "medium_risk": "Medium Risk",
+    "context_phrases": "Context Phrases",
+    "work_context": "Work Context"
+  },
+  "file_processing": {
+    "invalid_file": "Does not appear to be a valid WhatsApp file",
+    "valid_file": "WhatsApp format detected",
+    "success": "Found {count} messages",
+    "error": "Could not extract messages from file. Verify it is a valid WhatsApp export."
+  },
+  "filters": {
+    "date_range": "Date Range (Optional)",
+    "from": "From",
+    "to": "To",
+    "chat_contains": "Chat contains messages from {from} to {to}",
+    "applied": "Filters applied: {filtered} of {total} messages"
+  },
+  "analysis": {
+    "header": "Analysis Results",
+    "detecting": "Detecting: {detection_type} with {sensitivity} sensitivity (threshold: {threshold:.2f})",
+    "analyzing": "Analyzing messages...",
+    "total_messages": "Total Messages",
+    "detected": "Detected",
+    "percentage": "Percentage",
+    "average_risk": "Average Risk",
+    "no_patterns": "No suspicious patterns detected in the conversation",
+    "visualizations": "Visualizations",
+    "evidence": "Evidence Found",
+    "filter_by_sender": "Filter by sender:",
+    "minimum_risk": "Minimum risk to show:",
+    "search_word": "Search word:",
+    "search_placeholder": "Ex: secret, boss...",
+    "showing_results": "Showing first 50 of {count} evidence items"
+  },
+  "table": {
+    "date": "Date/Time",
+    "sender": "Sender",
+    "message": "Message",
+    "risk": "Risk",
+    "terms": "Terms"
+  },
+  "downloads": {
+    "header": "Download Results",
+    "complete_csv": "Download Complete CSV",
+    "detections_only": "Download Detections Only",
+    "executive_report": "Download Executive Report"
+  },
+  "report": {
+    "title": "EXECUTIVE REPORT - WHATSAPP ANALYZER",
+    "analysis_date": "Analysis date",
+    "analyzed_file": "Analyzed file",
+    "detection_type": "Detection type",
+    "sensitivity": "Sensitivity",
+    "threshold_used": "Threshold used",
+    "summary": "SUMMARY",
+    "total_messages": "Total messages analyzed",
+    "detected_messages": "Detected messages",
+    "detection_percentage": "Detection percentage",
+    "average_risk": "Average risk",
+    "disclaimer": "DISCLAIMER",
+    "disclaimer_text": "This report is a support tool, not definitive legal evidence. Results require manual validation."
+  },
+  "footer": {
+    "privacy": "Privacy: All files are processed locally. No data is stored.",
+    "responsible_use": "Responsible Use: This tool should be used only for legitimate purposes and respecting privacy."
+  },
+  "instructions": {
+    "title": "WhatsApp Analyzer — Usage Guide",
+    "what_is": "What is this tool?",
+    "what_is_text": "Local detection system for analyzing patterns in WhatsApp conversations. Processes files entirely without sending them to external servers — everything runs on your machine.",
+    "how_to_use": "How to use",
+    "prepare_chat": "1. Prepare the chat",
+    "prepare_chat_steps": "- Open WhatsApp and go to the chat you want to analyze\n- More options (⋮) → Export chat → Without media\n- Save the file (.txt) on your computer",
+    "select_categories": "2. Select categories or terms",
+    "select_categories_text": "- **Predefined categories:** Sexual Harassment, Cyberbullying, Threats, Drugs, Infidelity, etc.\n- **Custom terms:** Type names or words in the \"Type\" tab\n  - Separate with commas or line breaks: `juan, pedro, marla`\n  - For exact phrase search, use quotes: `\"good morning\"`\n- **CSV file:** For many terms, upload a CSV with `term,category` per line",
+    "adjust_sensitivity": "3. Adjust sensitivity",
+    "adjust_sensitivity_text": "- **Low:** Fewer false positives, but may miss real cases\n- **Medium:** Recommended balance\n- **High:** Detects more cases, but may have more false positives",
+    "upload_analyze": "4. Upload the chat and analyze",
+    "upload_analyze_text": "- Upload the .txt file you exported\n- The app analyzes automatically and shows results",
+    "results": "Results",
+    "results_text": "- **DETECTED:** Message exceeded risk threshold\n- **NOT DETECTED:** Below threshold\n- **Detected words:** Which terms were found in each message",
+    "about_author": "About the creator",
+    "author_linkedin": "GitHub repository & more: {linkedin}",
+    "privacy": "Privacy",
+    "privacy_text": "All files are processed locally in memory. No data is stored or transmitted to external servers."
+  },
+  "errors": {
+    "file_error": "Error processing file",
+    "verify_file": "Verify that the file is a valid WhatsApp export"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "app": {
+    "title": "Analizador WhatsApp",
+    "subtitle": "Aplicación Avanzada de Detección de Patrones",
+    "description": "Sistema avanzado para detección de patrones y comportamientos en chats",
+    "page_title": "Analizador WhatsApp - Detección de Patrones"
+  },
+  "sidebar": {
+    "configuration": "Configuración",
+    "detection_type": "Tipo(s) de Detección",
+    "detection_type_help": "Puedes combinar múltiples categorías a la vez",
+    "add_custom_terms": "Agregar Términos Personalizados (Opcional)",
+    "sensitivity": "Nivel de Sensibilidad",
+    "sensitivity_help": "Bajo: Menos falsos positivos | Alto: Detecta más casos",
+    "custom_threshold": "Umbral Personalizado (Opcional)",
+    "custom_threshold_help": "0.0 = Muy sensible | 1.0 = Muy estricto",
+    "use_custom_threshold": "Usar umbral personalizado",
+    "advanced_filters": "Filtros Avanzados (Opcional)",
+    "senders": "Remitentes",
+    "select_senders": "Selecciona remitentes a analizar (si ninguno es seleccionado, se analizan todos)"
+  },
+  "tabs": {
+    "type": "Escribir",
+    "file": "Archivo"
+  },
+  "custom_terms": {
+    "type_placeholder": "juan, pedro\nmarla\n\"buenos días\"",
+    "type_help": "Cada término se busca independientemente (OR). El texto entre comillas se busca como frase exacta.",
+    "file_uploader": "Sube un CSV/TXT con términos adicionales",
+    "file_uploader_help": "Formato: término,categoría por línea. Se añade a las categorías seleccionadas arriba.",
+    "success": "Términos adicionales cargados correctamente",
+    "error": "Error al cargar el archivo de términos"
+  },
+  "upload": {
+    "header": "Subir Archivo de Chat",
+    "label": "Selecciona archivo de WhatsApp (.txt)",
+    "help": "Debe ser una exportación de chat de WhatsApp sin medios",
+    "dictionary_summary": "Resumen del Diccionario",
+    "no_dictionary": "Selecciona al menos una categoría o sube términos personalizados en la barra lateral"
+  },
+  "dictionary": {
+    "high_risk": "Riesgo Alto",
+    "medium_risk": "Riesgo Medio",
+    "context_phrases": "Frases de Contexto",
+    "work_context": "Contexto Laboral"
+  },
+  "file_processing": {
+    "invalid_file": "No parece ser un archivo válido de WhatsApp",
+    "valid_file": "Formato WhatsApp detectado",
+    "success": "Se encontraron {count} mensajes",
+    "error": "No se pudieron extraer mensajes del archivo. Verifica que sea una exportación válida de WhatsApp."
+  },
+  "filters": {
+    "date_range": "Rango de Fechas (Opcional)",
+    "from": "Desde",
+    "to": "Hasta",
+    "chat_contains": "El chat contiene mensajes de {from} a {to}",
+    "applied": "Filtros aplicados: {filtered} de {total} mensajes"
+  },
+  "analysis": {
+    "header": "Resultados del Análisis",
+    "detecting": "Detectando: {detection_type} con sensibilidad {sensitivity} (umbral: {threshold:.2f})",
+    "analyzing": "Analizando mensajes...",
+    "total_messages": "Total de Mensajes",
+    "detected": "Detectados",
+    "percentage": "Porcentaje",
+    "average_risk": "Riesgo Promedio",
+    "no_patterns": "No se detectaron patrones sospechosos en la conversación",
+    "visualizations": "Visualizaciones",
+    "evidence": "Evidencia Encontrada",
+    "filter_by_sender": "Filtrar por remitente:",
+    "minimum_risk": "Riesgo mínimo a mostrar:",
+    "search_word": "Buscar palabra:",
+    "search_placeholder": "Ej: secreto, jefe...",
+    "showing_results": "Mostrando primeros 50 de {count} elementos de evidencia"
+  },
+  "table": {
+    "date": "Fecha/Hora",
+    "sender": "Remitente",
+    "message": "Mensaje",
+    "risk": "Riesgo",
+    "terms": "Términos"
+  },
+  "downloads": {
+    "header": "Descargar Resultados",
+    "complete_csv": "Descargar CSV Completo",
+    "detections_only": "Descargar Solo Detecciones",
+    "executive_report": "Descargar Informe Ejecutivo"
+  },
+  "report": {
+    "title": "INFORME EJECUTIVO - ANALIZADOR WHATSAPP",
+    "analysis_date": "Fecha del análisis",
+    "analyzed_file": "Archivo analizado",
+    "detection_type": "Tipo de detección",
+    "sensitivity": "Sensibilidad",
+    "threshold_used": "Umbral utilizado",
+    "summary": "RESUMEN",
+    "total_messages": "Total de mensajes analizados",
+    "detected_messages": "Mensajes detectados",
+    "detection_percentage": "Porcentaje de detección",
+    "average_risk": "Riesgo promedio",
+    "disclaimer": "AVISO LEGAL",
+    "disclaimer_text": "Este informe es una herramienta de apoyo, no es prueba legal definitiva. Los resultados requieren validación manual."
+  },
+  "footer": {
+    "privacy": "Privacidad: Todos los archivos se procesan localmente. No se almacena ningún dato.",
+    "responsible_use": "Uso Responsable: Esta herramienta debe utilizarse solo para fines legítimos y respetando la privacidad."
+  },
+  "instructions": {
+    "title": "Analizador WhatsApp — Guía de Uso",
+    "what_is": "¿Qué es esta herramienta?",
+    "what_is_text": "Sistema local de detección para analizar patrones en conversaciones de WhatsApp. Procesa archivos completamente sin enviarlos a servidores externos — todo se ejecuta en tu máquina.",
+    "how_to_use": "Cómo usar",
+    "prepare_chat": "1. Prepara el chat",
+    "prepare_chat_steps": "- Abre WhatsApp y ve al chat que quieres analizar\n- Más opciones (⋮) → Exportar chat → Sin medios\n- Guarda el archivo (.txt) en tu computadora",
+    "select_categories": "2. Selecciona categorías o términos",
+    "select_categories_text": "- **Categorías predefinidas:** Acoso Sexual, Ciberacoso, Amenazas, Drogas, Infidelidad, etc.\n- **Términos personalizados:** Escribe nombres o palabras en la pestaña \"Escribir\"\n  - Separa con comas o saltos de línea: `juan, pedro, marla`\n  - Para búsqueda de frase exacta, usa comillas: `\"buenos días\"`\n- **Archivo CSV:** Para muchos términos, sube un CSV con `término,categoría` por línea",
+    "adjust_sensitivity": "3. Ajusta la sensibilidad",
+    "adjust_sensitivity_text": "- **Bajo:** Menos falsos positivos, pero puede perder casos reales\n- **Medio:** Balance recomendado\n- **Alto:** Detecta más casos, pero puede tener más falsos positivos",
+    "upload_analyze": "4. Sube el chat y analiza",
+    "upload_analyze_text": "- Sube el archivo .txt que exportaste\n- La aplicación analiza automáticamente y muestra resultados",
+    "results": "Resultados",
+    "results_text": "- **DETECTADO:** El mensaje superó el umbral de riesgo\n- **NO DETECTADO:** Por debajo del umbral\n- **Palabras detectadas:** Qué términos se encontraron en cada mensaje",
+    "about_author": "Sobre el creador",
+    "author_linkedin": "Repositorio en GitHub y más: {linkedin}",
+    "privacy": "Privacidad",
+    "privacy_text": "Todos los archivos se procesan localmente en memoria. No se almacena ni transmite ningún dato a servidores externos."
+  },
+  "errors": {
+    "file_error": "Error al procesar el archivo",
+    "verify_file": "Verifica que el archivo sea una exportación válida de WhatsApp"
+  }
+}
