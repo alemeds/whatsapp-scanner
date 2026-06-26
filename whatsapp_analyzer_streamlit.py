@@ -187,8 +187,6 @@ def main():
 
             dates, senders = extract_dates_and_senders(messages)
 
-            if "use_date_filter" not in st.session_state:
-                st.session_state.use_date_filter = False
             if "filter_date_from" not in st.session_state:
                 st.session_state.filter_date_from = dates[0] if dates else None
             if "filter_date_to" not in st.session_state:
@@ -196,38 +194,25 @@ def main():
             if "filter_senders" not in st.session_state:
                 st.session_state.filter_senders = senders if senders else []
 
-            with st.sidebar.expander("🔍 Advanced Filters (Optional)", expanded=True):
-                st.write("**Date Range**")
-                st.session_state.use_date_filter = st.checkbox(
-                    "🗓️ Filter by date range",
-                    value=st.session_state.use_date_filter,
-                    key="use_date_filter_input"
+            st.write("**🗓️ Date Range (Optional)**")
+            if dates:
+                st.caption(f"Chat contains messages from {dates[0]} to {dates[-1]}")
+
+            col_date1, col_date2 = st.columns(2)
+            with col_date1:
+                st.session_state.filter_date_from = st.date_input(
+                    "From",
+                    value=st.session_state.filter_date_from,
+                    key="date_from_input"
+                )
+            with col_date2:
+                st.session_state.filter_date_to = st.date_input(
+                    "To",
+                    value=st.session_state.filter_date_to,
+                    key="date_to_input"
                 )
 
-                if st.session_state.use_date_filter:
-                    if dates:
-                        st.caption(f"📅 Chat dates: {dates[0]} to {dates[-1]}")
-
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.session_state.filter_date_from = st.date_input(
-                            "From",
-                            value=st.session_state.filter_date_from,
-                            key="date_from_input"
-                        )
-                    with col2:
-                        st.session_state.filter_date_to = st.date_input(
-                            "To",
-                            value=st.session_state.filter_date_to,
-                            key="date_to_input"
-                        )
-
-                    if st.session_state.filter_date_from and st.session_state.filter_date_to:
-                        if st.session_state.filter_date_from > st.session_state.filter_date_to:
-                            st.error("❌ 'From' date cannot be after 'To' date")
-                else:
-                    st.info("📅 Analyzing ENTIRE chat period")
-
+            with st.sidebar.expander("🔍 Advanced Filters (Optional)", expanded=True):
                 if senders:
                     st.write("**Senders**")
                     st.session_state.filter_senders = st.multiselect(
@@ -239,16 +224,13 @@ def main():
 
             messages_filtered = messages
 
-            if st.session_state.use_date_filter and st.session_state.filter_date_from and st.session_state.filter_date_to:
-                if st.session_state.filter_date_from <= st.session_state.filter_date_to:
-                    filtered_messages = []
-                    for ts, sender, msg in messages_filtered:
-                        msg_date = parse_whatsapp_date(ts.split()[0].strip(','))
-                        if msg_date and st.session_state.filter_date_from <= msg_date <= st.session_state.filter_date_to:
-                            filtered_messages.append((ts, sender, msg))
-                    messages_filtered = filtered_messages
-                else:
-                    messages_filtered = []
+            if st.session_state.filter_date_from and st.session_state.filter_date_to:
+                filtered_messages = []
+                for ts, sender, msg in messages_filtered:
+                    msg_date = parse_whatsapp_date(ts.split()[0].strip(','))
+                    if msg_date and st.session_state.filter_date_from <= msg_date <= st.session_state.filter_date_to:
+                        filtered_messages.append((ts, sender, msg))
+                messages_filtered = filtered_messages
 
             if st.session_state.filter_senders:
                 messages_filtered = [
